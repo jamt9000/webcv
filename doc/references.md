@@ -1,12 +1,15 @@
-== References ==
+References
+==========
 
-=== Faces ===
+Faces
+-----
 
 [Viola and Jones. Rapid object detection using a boosted cascade of simple features](http://research.microsoft.com/en-us/um/people/viola/Pubs/Detect/violaJones_CVPR2001.pdf)
 
 [Angela Caunce et al. Locating Facial Features and Pose Estimation Using a 3D Shape Model](http://personalpages.manchester.ac.uk/staff/angela.caunce/page8a.html)
 
-=== WebGL ===
+WebGL
+-----
 
 [Khronos Group. WebGL Specification](http://www.khronos.org/registry/webgl/specs/latest/)
 
@@ -21,7 +24,8 @@
 [Evgeny Demidov. WebGL and simulations on GPU](http://www.ibiblio.org/e-notes/webgl/gpu/contents.htm) -- some nice demos
 
 
-=== KLT Tracking ===
+KLT Tracking
+------------
 
 The big three papers:
 
@@ -37,6 +41,11 @@ The big three papers:
 
 [Simon Baker. Lucas-Kanade 20 Years On](http://www.ri.cmu.edu/research_project_detail.html?project_id=515&menu_id=261) -- Matlab implementation
 
-=== Computer Vision ===
+Computer Vision
+---------------
 
 [Steven Lovegrove. Parametric Dense Visual SLAM (PhD thesis)](http://www.doc.ic.ac.uk/~sl203/content/PhDThesis/LovegrovePhDThesis.pdf) -- has a good section on OpenGL in vision
+
+[inspirit. jsfeat JavaScript Computer Vision library](https://github.com/inspirit/jsfeat) -- my competitor!
+
+[Berkin Bilgic. Efficient Integral Image Computation on the GPU](http://web.mit.edu/berkin/www/Bilgic_2010_Integral_Image.pdf) -- CUDA integral image
