@@ -1,0 +1,50 @@
+uniformFunctionsv
+
+uniform1fv FLOAT BOOL
+uniform1iv INT SAMPLER_2D SAMPLER_CUBE
+uniform2fv FLOAT_VEC2
+uniform2iv INT_VEC2 BOOL_VEC2
+uniform3fv FLOAT_VEC3
+uniform3iv INT_VEC3 BOOL_VEC3
+uniform4fv FLOAT_VEC4
+uniform4iv INT_VEC4 BOOL_VEC3
+uniformMatrix2fv FLOAT_MAT2
+uniformMatrix3fv FLOAT_MAT3
+uniformMatrix4fv FLOAT_MAT4
+
+
+uniformFunctions
+
+uniform1f FLOAT BOOL
+uniform1i INT SAMPLER_2D SAMPLER_CUBE
+uniform2f FLOAT_VEC2
+uniform2i INT_VEC2 BOOL_VEC2
+uniform3f  FLOAT_VEC3
+uniform3i INT_VEC3 BOOL_VEC3
+uniform4f FLOAT_VEC4 
+uniform4i INT_VEC4 BOOL_VEC3
+
+
+vertexAttrib functions
+
+vertexAttrib1f FLOAT
+vertexAttrib1fv FLOAT
+vertexAttrib2f FLOAT_VEC2
+vertexAttrib2fv FLOAT_VEC2
+vertexAttrib3f FLOAT_VEC3
+vertexAttrib3fv FLOAT_VEC3
+vertexAttrib4f FLOAT_VEC4
+vertexAttrib4fv FLOAT_VEC4
+vertexAttribPointer
+
+
+
+
+Buffer binding
+
+  var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+  var texCoordBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([]), gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(texCoordLocation);
+  gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
