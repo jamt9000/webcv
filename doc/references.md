@@ -8,8 +8,8 @@ Faces
 
 [Angela Caunce et al. Locating Facial Features and Pose Estimation Using a 3D Shape Model](http://personalpages.manchester.ac.uk/staff/angela.caunce/page8a.html)
 
-WebGL
------
+WebGL / OpenGL
+--------------
 
 [Khronos Group. WebGL Specification](http://www.khronos.org/registry/webgl/specs/latest/)
 
@@ -22,6 +22,8 @@ WebGL
 [benvanik. WebGL Inspector](http://benvanik.github.com/WebGL-Inspector/) -- looks like a very useful tool for debugging webgl
 
 [Evgeny Demidov. WebGL and simulations on GPU](http://www.ibiblio.org/e-notes/webgl/gpu/contents.htm) -- some nice demos
+
+[LCG. Reductions in GPU](http://www.lcg.ufrj.br/Cursos/GPUProg/GPGPU_Reductions)
 
 
 KLT Tracking

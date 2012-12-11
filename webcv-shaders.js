@@ -1,5 +1,5 @@
 /*jslint es5: true, browser: true, devel: true */
-/*global WebCV, Float32Array, Int32Array */
+/*global WebCV, Float32Array, Int32Array, Uint8Array, Int8Array, Uint16Array, Int16Array, Uint32Array, Int32Array */
 
 (function (WebCV, window, document, undefined) {
     "use strict";
@@ -21,10 +21,10 @@
                 "varying vec2 vTextureCoord;",
 
                 "void main() {",
-                "    // convert pixel coords to range -1,1",
-                "    vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
-                "    gl_Position = vec4(normCoords, 0, 1);",
-                "    // pass aTextureCoord to fragment shader unchanged",
+                "   // convert pixel coords to range -1,1",
+                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
+                "   gl_Position = vec4(normCoords, 0, 1);",
+                "   // pass aTextureCoord to fragment shader unchanged",
                 "   vTextureCoord = aTextureCoord;",
                 "}"
             ],
@@ -33,7 +33,44 @@
                 "uniform sampler2D uSampler;",
                 "varying vec2 vTextureCoord; // from vertex shader",
                 "void main() {",
-                "    gl_FragColor = texture2D(uSampler, vTextureCoord);",
+                "   gl_FragColor = texture2D(uSampler, vTextureCoord);",
+                "}"
+            ]
+        },
+        convolution: {
+            vertex: [
+                "uniform vec2 uResolution;",
+                "attribute vec2 aPosition;",
+                "attribute vec2 aTextureCoord;",
+                "varying vec2 vTextureCoord;",
+                "void main () {",
+                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
+                "   gl_Position = vec4(normCoords, 0, 1);",
+                "   vTextureCoord = aTextureCoord;",
+                "}"
+            ],
+            fragment: [
+                "precision mediump float;",
+                "uniform sampler2D uSampler;",
+                "uniform mat3 uKernel;",
+                "uniform vec2 uImageSize; // for pixel based calculation",
+                "varying vec2 vTextureCoord; // from vertex shader",
+                "void main() {",
+                "    // to convert to pixel units",
+                "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
+                "    // Two considerations: glsl matrices are column major,",
+                "    //                     gl coordinates origin is bottom left",
+                "    vec3 neighbourSum = vec3(0.0, 0.0, 0.0);",
+                "    float totalSum = 0.0;",
+                "    for(int c=0; c<3; c++){",
+                "        for(int r=0; r<3; r++){",
+                "          vec2 offs = vec2(c-1,r-1) * px;",
+                "          float kernelVal = uKernel[c][r];",
+                "          neighbourSum += (texture2D(uSampler, vTextureCoord + offs) * kernelVal).rgb;",
+                "          totalSum += kernelVal;",
+                "        }",
+                "    }",
+                "    gl_FragColor = vec4(neighbourSum / totalSum, 1.0);",
                 "}"
             ]
         }
@@ -88,7 +125,8 @@
                     uniforms,
                     activeInfo,
                     location,
-                    val;
+                    val,
+                    k;
 
                 // Find all available uniforms
                 uniforms = {};
@@ -107,28 +145,65 @@
                                 val = options[opt];
 
                                 if (val instanceof Number) {
-                                    gl.uniform1f(location, val)
+                                    gl.uniform1f(location, val);
                                 } else {
+                                    // Monstruous switch statement to choose correct uniform function
+                                    // based on the uniform's type
                                     switch (activeInfo.type) {
-                                    case gl.FLOAT: gl.uniform1fv(location, new Float32Array(val)); break;
-                                    case gl.FLOAT_VEC2: gl.uniform2fv(location, new Float32Array(val)); break;
-                                    case gl.FLOAT_VEC3: gl.uniform3fv(location, new Float32Array(val)); break;
-                                    case gl.FLOAT_VEC4: gl.uniform4fv(location, new Float32Array(val)); break;
-                                    case gl.FLOAT_MAT2: uniformMatrix2fv(location, true, new Float32Array(val)); break;
-                                    case gl.FLOAT_MAT3: uniformMatrix3fv(location, true, new Float32Array(val)); break;
-                                    case gl.FLOAT_MAT4: uniformMatrix4fv(location, true, new Float32Array(val)); break;
-                                    case gl.INT:      gl.uniform1iv(location, new Int32Array(val)); break;
-                                    case gl.INT_VEC2: gl.uniform2iv(location, new Int32Array(val)); break;
-                                    case gl.INT_VEC3: gl.uniform3iv(location, new Int32Array(val)); break;
-                                    case gl.INT_VEC4: gl.uniform4iv(location, new Int32Array(val)); break;
-                                    case gl.BOOL:      gl.uniform1iv(location, new Int32Array(val)); break;   
-                                    case gl.BOOL_VEC2: gl.uniform2iv(location, new Int32Array(val)); break;
-                                    case gl.BOOL_VEC3: gl.uniform3iv(location, new Int32Array(val)); break;
-                                    case gl.BOOL_VEC4: gl.uniform4iv(location, new Int32Array(val)); break;
-                                    case gl.SAMPLER_2D:  gl.uniform1iv(location, new Int32Array(val)); break;   
-                                    case gl.SAMPLER_CUBE:  gl.uniform1iv(location, new Int32Array(val)); break;   
+                                    case gl.FLOAT:
+                                        gl.uniform1fv(location, new Float32Array(val));
+                                        break;
+                                    case gl.FLOAT_VEC2:
+                                        gl.uniform2fv(location, new Float32Array(val));
+                                        break;
+                                    case gl.FLOAT_VEC3:
+                                        gl.uniform3fv(location, new Float32Array(val));
+                                        break;
+                                    case gl.FLOAT_VEC4:
+                                        gl.uniform4fv(location, new Float32Array(val));
+                                        break;
+                                    case gl.FLOAT_MAT2:
+                                        gl.uniformMatrix2fv(location, true, new Float32Array(val));
+                                        break;
+                                    case gl.FLOAT_MAT3:
+                                        gl.uniformMatrix3fv(location, true, new Float32Array(val));
+                                        break;
+                                    case gl.FLOAT_MAT4:
+                                        gl.uniformMatrix4fv(location, true, new Float32Array(val));
+                                        break;
+                                    case gl.INT:
+                                        gl.uniform1iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.INT_VEC2:
+                                        gl.uniform2iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.INT_VEC3:
+                                        gl.uniform3iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.INT_VEC4:
+                                        gl.uniform4iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.BOOL:
+                                        gl.uniform1iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.BOOL_VEC2:
+                                        gl.uniform2iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.BOOL_VEC3:
+                                        gl.uniform3iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.BOOL_VEC4:
+                                        gl.uniform4iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.SAMPLER_2D:
+                                        gl.uniform1iv(location, new Int32Array(val));
+                                        break;
+                                    case gl.SAMPLER_CUBE:
+                                        gl.uniform1iv(location, new Int32Array(val));
+                                        break;
+
                                     }
-                                } 
+                                }
                             }
                         }
                     }
@@ -142,7 +217,6 @@
                     buffer,
                     val,
                     nAttributes,
-                    attributes,
                     k,
                     activeInfo,
                     dataType,
@@ -167,7 +241,7 @@
                         }
 
                         // If passed a regular array or typed array, create a new buffer
-                        if (Object.prototype.toString.call(buffer) !== '[object WebGLBuffer]'){
+                        if (Object.prototype.toString.call(buffer) !== '[object WebGLBuffer]') {
                             console.log("Creating new buffer");
                             buffer = this.arrayBuffer(buffer);
                         }
@@ -185,7 +259,7 @@
 
                         gl.enableVertexAttribArray(location);
                     }
-                }            
+                }
             },
 
             arrayBuffer: function (data) {
@@ -193,7 +267,7 @@
                     buffer = gl.createBuffer(),
                     typedArray,
                     dataType;
-                
+
                 // Crazy way to check if array since instanceof doesn't
                 // work across frames (including Firefox dev console)
                 if (Object.prototype.toString.call(data) === '[object Array]') {
@@ -201,19 +275,33 @@
                 } else {
                     typedArray = data;
                 }
-                
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
                 gl.bufferData(gl.ARRAY_BUFFER, typedArray, gl.STATIC_DRAW);
 
                 // Should probably use the toString method here, but might be slow
                 switch (typedArray.constructor) {
-                    case Float32Array: dataType = gl.FLOAT; break;
-                    case Uint8Array: dataType = gl.UNSIGNED_BYTE; break;
-                    case Int8Array: dataType = gl.BYTE; break;
-                    case Uint16Array: dataType = gl.UNSIGNED_SHORT; break;
-                    case Int16Array: dataType = gl.SHORT; break;
-                    case Uint32Array: dataType = gl.UNSIGNED_INT; break;
-                    case Int32Array: dataType = gl.INT; break;
+                case Float32Array:
+                    dataType = gl.FLOAT;
+                    break;
+                case Uint8Array:
+                    dataType = gl.UNSIGNED_BYTE;
+                    break;
+                case Int8Array:
+                    dataType = gl.BYTE;
+                    break;
+                case Uint16Array:
+                    dataType = gl.UNSIGNED_SHORT;
+                    break;
+                case Int16Array:
+                    dataType = gl.SHORT;
+                    break;
+                case Uint32Array:
+                    dataType = gl.UNSIGNED_INT;
+                    break;
+                case Int32Array:
+                    dataType = gl.INT;
+                    break;
                 }
 
                 // Store array type on the buffer object
@@ -234,6 +322,14 @@
                 fragSource = source.fragment.join('\n');
 
                 return this.compileShaderProgram(vertSource, fragSource);
+            },
+
+            uploadTexture: function (image) {
+                var gl = this.core.gl,
+                    texture = gl.createTexture();
+
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
             }
         };
     };

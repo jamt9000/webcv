@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+<head>
+<script src="./yuitest-min.js"></script>
+<script src="../webcv.js"></script>
+</head>
+<body>
+<canvas id="glcanvas"> </canvas>
+<script>
+/*global YUITest, WebCV */
+"use strict";
+
+var testCase = new YUITest.TestCase({
+
+    name: "Load GL",
+
+    testGL : function () {
+        var canvas = document.getElementById("glcanvas"),
+            cv = WebCV.create(canvas);
+        YUITest.Assert.isTrue(cv.gl !== null, "cv.gl should not be null");
+    }
+});
+
+YUITest.TestRunner.add(testCase);
+YUITest.TestRunner.run();
+
+</script>
+</body>
+</html>
