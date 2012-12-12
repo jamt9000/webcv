@@ -1,0 +1,30 @@
+<!doctype html5>
+<html>
+<head>
+<title>requestUserMedia demo</title>
+<script src="jquery.js"></script>
+<script>
+
+function canvasUpdate(){
+	var vid = document.getElementById("webcamvideo");
+	var canvas = document.getElementById("canvas");
+	canvas.getContext("2d").drawImage(vid,0,0);
+    setTimeout(canvasUpdate,100);
+}
+
+function loadVideo(stream){
+	var vid = document.getElementById("webcamvideo");
+	vid.src = window.webkitURL.createObjectURL(stream);
+    canvasUpdate();
+
+}
+$(document).ready(function(){
+		navigator.webkitGetUserMedia({video:true}, loadVideo, function(){})
+		});
+</script>
+</head>
+<body>
+<canvas id="canvas" width=640 height=480></canvas>
+<video id="webcamvideo" autoplay width=640 height=480></video>
+</body>
+</html>

@@ -73,6 +73,119 @@
                 "    gl_FragColor = vec4(neighbourSum / totalSum, 1.0);",
                 "}"
             ]
+        },
+
+        sobelEdge: {
+            vertex: [
+                "uniform vec2 uResolution;",
+                "attribute vec2 aPosition;",
+                "attribute vec2 aTextureCoord;",
+                "varying vec2 vTextureCoord;",
+                "void main () {",
+                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
+                "   gl_Position = vec4(normCoords, 0, 1);",
+                "   vTextureCoord = aTextureCoord;",
+                "}"
+            ],
+            fragment: [
+                "precision mediump float;",
+                "uniform sampler2D uSampler;",
+                "uniform mat3 uKernel;",
+                "uniform vec2 uImageSize; // for pixel based calculation",
+                "varying vec2 vTextureCoord; // from vertex shader",
+                "void main() {",
+                "    // to convert to pixel units",
+                "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
+                "    float thresh = 0.0;",
+                "    float neighbourSum = 0.0;",
+                "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
+                "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
+                "    for(int c=0; c<3; c++){",
+                "        for(int r=0; r<3; r++){",
+                "          vec2 offs = vec2(c-1,r-1) * px;",
+                "          float kernelVal = sobelX[c][r];",
+                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
+                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
+                "          neighbourSum += grey * kernelVal;",
+                "        }",
+                "    }",
+                "    float valueX = neighbourSum;",
+                "    for(int c=0; c<3; c++){",
+                "        for(int r=0; r<3; r++){",
+                "          vec2 offs = vec2(c-1,r-1) * px;",
+                "          float kernelVal = sobelY[c][r];",
+                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
+                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
+                "          neighbourSum += grey * kernelVal;",
+                "        }",
+                "    }",
+                "    float valueY = neighbourSum;",
+                "    float res = length(vec2(valueX, valueY));",
+                "    if(res < thresh){",
+                "      res = 0.0;",
+                "    }",
+                "    gl_FragColor = vec4(res, res, res, 1.0);",
+                "}"
+            ]
+
+
+        },
+
+        sobelEdgeHighlight: {
+            vertex: [
+                "uniform vec2 uResolution;",
+                "attribute vec2 aPosition;",
+                "attribute vec2 aTextureCoord;",
+                "varying vec2 vTextureCoord;",
+                "void main () {",
+                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
+                "   gl_Position = vec4(normCoords, 0, 1);",
+                "   vTextureCoord = aTextureCoord;",
+                "}"
+            ],
+            fragment: [
+                "precision mediump float;",
+                "uniform sampler2D uSampler;",
+                "uniform mat3 uKernel;",
+                "uniform vec2 uImageSize; // for pixel based calculation",
+                "varying vec2 vTextureCoord; // from vertex shader",
+                "void main() {",
+                "    // to convert to pixel units",
+                "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
+                "    float thresh = 0.15;",
+                "    float neighbourSum = 0.0;",
+                "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
+                "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
+                "    for(int c=0; c<3; c++){",
+                "        for(int r=0; r<3; r++){",
+                "          vec2 offs = vec2(c-1,r-1) * px;",
+                "          float kernelVal = sobelX[c][r];",
+                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
+                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
+                "          neighbourSum += grey * kernelVal;",
+                "        }",
+                "    }",
+                "    float valueX = neighbourSum;",
+                "    for(int c=0; c<3; c++){",
+                "        for(int r=0; r<3; r++){",
+                "          vec2 offs = vec2(c-1,r-1) * px;",
+                "          float kernelVal = sobelY[c][r];",
+                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
+                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
+                "          neighbourSum += grey * kernelVal;",
+                "        }",
+                "    }",
+                "    float valueY = neighbourSum;",
+                "    float res = length(vec2(valueX, valueY));",
+                "    if(res < thresh){",
+                "      res = 0.0;",
+                "    }",
+                "    res = 1.0 - res;",
+                "    vec4 colour = texture2D(uSampler, vTextureCoord);",
+                "    gl_FragColor = vec4( colour.r/res,colour.gba);",
+                "}"
+]
+
         }
     };
 
@@ -163,13 +276,13 @@
                                         gl.uniform4fv(location, new Float32Array(val));
                                         break;
                                     case gl.FLOAT_MAT2:
-                                        gl.uniformMatrix2fv(location, true, new Float32Array(val));
+                                        gl.uniformMatrix2fv(location, false, new Float32Array(val));
                                         break;
                                     case gl.FLOAT_MAT3:
-                                        gl.uniformMatrix3fv(location, true, new Float32Array(val));
+                                        gl.uniformMatrix3fv(location, false, new Float32Array(val));
                                         break;
                                     case gl.FLOAT_MAT4:
-                                        gl.uniformMatrix4fv(location, true, new Float32Array(val));
+                                        gl.uniformMatrix4fv(location, false, new Float32Array(val));
                                         break;
                                     case gl.INT:
                                         gl.uniform1iv(location, new Int32Array(val));
@@ -255,9 +368,10 @@
                         // use data type stored on buffer if available
                         dataType = buffer.webcv_dataType || gl.FLOAT;
 
-                        gl.vertexAttribPointer(location, activeInfo.size, dataType, false, 0, 0);
-
                         gl.enableVertexAttribArray(location);
+
+                        gl.vertexAttribPointer(location, /*XXX should be num elements per vertex */ 2, dataType, false, 0, 0);
+
                     }
                 }
             },
@@ -324,12 +438,22 @@
                 return this.compileShaderProgram(vertSource, fragSource);
             },
 
-            uploadTexture: function (image) {
-                var gl = this.core.gl,
+            uploadTexture: function (image, texture) {
+                var gl = this.core.gl;
+
+                if (texture === undefined) {
                     texture = gl.createTexture();
+                }
 
                 gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                 gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+                return texture;
             }
         };
     };
