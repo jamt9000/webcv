@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+<head>
+<!--<script src="http://benvanik.github.com/WebGL-Inspector/core/embed.js"></script>-->
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="jquery.js"></script>
+<script>
+/*global WebCV, cv, gl, alert, $, Float32Array */
+"use strict";
+
+(function () {
+
+    var shaders = [];
+    var gl = null;
+
+    function updateVideo(vid, vidTexture) {
+        cv.shaders.uploadTexture(vid, vidTexture);
+        console.log("update texture");
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
+
+    function videoLoaded(stream) {
+        var vid = document.getElementById("webcamvideo");
+        vid.src = stream;
+
+        var convolutionShader = cv.shaders.getNamedShader("harris");
+        var uniforms = {
+            "uResolution": [400, 300],
+            "uKernel": [1, 2, 1, 2, 0, 2, 1, 2, 1],
+            "uImageSize": [400, 300]
+        };
+
+        gl.useProgram(convolutionShader);
+
+        cv.shaders.setUniforms(convolutionShader, uniforms);
+
+        // A simple rectangle (2 triangles)
+        var vertCoords = new Float32Array([
+            0.0,   0.0,
+            400.0, 0.0,
+            0.0,   300.0,
+            0.0,   300.0,
+            400.0, 0.0,
+            400.0, 300.0]);
+
+        var vertBuf = cv.shaders.arrayBuffer(vertCoords);
+
+        // Set up the texture coordinates
+        var texCoords = new Float32Array([
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0]);
+
+        var texBuf = cv.shaders.arrayBuffer(texCoords);
+
+        var attrs = {
+            aTextureCoord: texBuf,
+            aPosition: vertBuf
+        };
+
+        cv.shaders.setAttributes(convolutionShader, attrs);
+
+        shaders.push(convolutionShader);
+
+        var vidTexture = cv.shaders.uploadTexture(vid);
+
+        setInterval(function () { updateVideo(vid, vidTexture); }, 50);
+
+    }
+
+    $(document).ready(function () {
+        var canvas = document.getElementById("glcanvas");
+
+        window.cv = WebCV.create(canvas);
+        if (cv.gl === null) {
+            alert("WebGL not supported");
+        }
+        gl = cv.gl;
+        window.gl = gl;
+
+        cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
+    });
+
+}());
+
+</script>
+</head>
+<body>
+<video id="webcamvideo" autoplay width="400" height="300"></video>
+<canvas id="glcanvas" width="400" height="300"></canvas>
+
+</body>
+</html>
