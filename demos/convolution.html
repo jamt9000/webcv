@@ -19,7 +19,31 @@
         cv.shaders.uploadTexture(vid, vidTexture);
         console.log("update texture");
 
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        // sharp [-1, -1, -1, -1, 16, -1, -1, -1, -1]
+        //       [0, -1, 0, -1, 5, -1, 0, -1, 0]
+        // unsharp [-1, -1, -1, -1, 9, -1, -1, -1, -1]
+        // blur [1, 2, 1, 2, 0, 2, 1, 2, 1]
+        // emboss [-2, -1, 0, -1, 1, 1, 0, 1,  2 ]
+        // edge [-1, -1, -1, -1, 8, -1, -1, -1, -1]
+
+        var shader = shaders[0];
+
+        var uniforms0 = {
+            "uResolution": [400, 300],
+            "uKernel": [0, -1, 0, -1, 5, -1, 0, -1, 0],
+            "uImageSize": [400, 300]
+        };
+        var uniforms1 = {
+            "uResolution": [400, 300],
+            "uKernel": [1, 2, 1, 2, 0, 2, 1, 2, 1],
+            "uImageSize": [400, 300]
+        };
+        var uniforms2 = {
+            "uResolution": [400, 300],
+            "uKernel": [-1, -1, -1, -1, 8, -1, -1, -1, -1],
+            "uImageSize": [400, 300]
+        };
+        cv.shaders.renderShaderChain([shader, shader, shader], [uniforms0, uniforms1, uniforms2], [], {initialTexture: vidTexture});
     }
 
     function videoLoaded(stream) {

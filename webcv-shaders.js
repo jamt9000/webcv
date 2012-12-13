@@ -70,7 +70,7 @@
                 "          totalSum += kernelVal;",
                 "        }",
                 "    }",
-                "    gl_FragColor = vec4(neighbourSum / totalSum, 1.0);",
+                "    gl_FragColor = vec4(neighbourSum / (totalSum <= 0.0 ? 1.0 : totalSum), 1.0);",
                 "}"
             ]
         },
@@ -96,30 +96,30 @@
                 "void main() {",
                 "    // to convert to pixel units",
                 "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
-                "    float thresh = 0.0;",
+                "    float thresh = 0.15;",
                 "    float neighbourSum = 0.0;",
                 "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
                 "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
+                "    float valueX = 0.0;",
                 "    for(int c=0; c<3; c++){",
                 "        for(int r=0; r<3; r++){",
                 "          vec2 offs = vec2(c-1,r-1) * px;",
                 "          float kernelVal = sobelX[c][r];",
                 "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
                 "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          neighbourSum += grey * kernelVal;",
+                "          valueX += grey * kernelVal;",
                 "        }",
                 "    }",
-                "    float valueX = neighbourSum;",
+                "    float valueY = 0.0;",
                 "    for(int c=0; c<3; c++){",
                 "        for(int r=0; r<3; r++){",
                 "          vec2 offs = vec2(c-1,r-1) * px;",
                 "          float kernelVal = sobelY[c][r];",
                 "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
                 "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          neighbourSum += grey * kernelVal;",
+                "          valueY += grey * kernelVal;",
                 "        }",
                 "    }",
-                "    float valueY = neighbourSum;",
                 "    float res = length(vec2(valueX, valueY));",
                 "    if(res < thresh){",
                 "      res = 0.0;",
@@ -127,8 +127,6 @@
                 "    gl_FragColor = vec4(res, res, res, 1.0);",
                 "}"
             ]
-
-
         },
 
         sobelEdgeHighlight: {
@@ -153,29 +151,28 @@
                 "    // to convert to pixel units",
                 "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
                 "    float thresh = 0.15;",
-                "    float neighbourSum = 0.0;",
                 "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
                 "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
+                "    float valueX = 0.0;",
                 "    for(int c=0; c<3; c++){",
                 "        for(int r=0; r<3; r++){",
                 "          vec2 offs = vec2(c-1,r-1) * px;",
                 "          float kernelVal = sobelX[c][r];",
                 "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
                 "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          neighbourSum += grey * kernelVal;",
+                "          valueX += grey * kernelVal;",
                 "        }",
                 "    }",
-                "    float valueX = neighbourSum;",
+                "    float valueY = 0.0;",
                 "    for(int c=0; c<3; c++){",
                 "        for(int r=0; r<3; r++){",
                 "          vec2 offs = vec2(c-1,r-1) * px;",
                 "          float kernelVal = sobelY[c][r];",
                 "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
                 "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          neighbourSum += grey * kernelVal;",
+                "          valueY += grey * kernelVal;",
                 "        }",
                 "    }",
-                "    float valueY = neighbourSum;",
                 "    float res = length(vec2(valueX, valueY));",
                 "    if(res < thresh){",
                 "      res = 0.0;",
@@ -185,6 +182,7 @@
                 "    gl_FragColor = vec4( colour.r/res,colour.gba);",
                 "}"
             ]
+
         },
         harris: {
             vertex: [
@@ -207,30 +205,28 @@
                 "void main() {",
                 "    // to convert to pixel units",
                 "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
-                "    float thresh = 0.15;",
-                "    float neighbourSum = 0.0;",
                 "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
                 "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
+                "    float valueX = 0.0;",
                 "    for(int c=0; c<3; c++){",
                 "        for(int r=0; r<3; r++){",
                 "          vec2 offs = vec2(c-1,r-1) * px;",
                 "          float kernelVal = sobelX[c][r];",
                 "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
                 "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          neighbourSum += grey * kernelVal;",
+                "          valueX += grey * kernelVal;",
                 "        }",
                 "    }",
-                "    float valueX = neighbourSum;",
+                "    float valueY = 0.0;",
                 "    for(int c=0; c<3; c++){",
                 "        for(int r=0; r<3; r++){",
                 "          vec2 offs = vec2(c-1,r-1) * px;",
                 "          float kernelVal = sobelY[c][r];",
                 "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
                 "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          neighbourSum += grey * kernelVal;",
+                "          valueY += grey * kernelVal;",
                 "        }",
                 "    }",
-                "    float valueY = neighbourSum;",
                 "    float Ixx = valueX * valueX;",
                 "    float Iyy = valueY * valueY;",
                 "    float Ixy = valueX * valueY;",
@@ -239,10 +235,10 @@
                 "    float trace = Ixx + Iyy;",
                 "    // Reflect large eigenvalues",
                 "    float res = 100000000.0 * det / trace;",
-                "    if(res > 5.0){",
-                "       gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);",
+                "    if(res > 10.0){",
+                "        gl_FragColor = vec4(1.0, 0, 0, 1.0);",
                 "    } else if(res > 1.0){",
-                "       gl_FragColor = vec4(0.0, 0.2 * res, 1.0, 1.0);",
+                "        gl_FragColor = vec4(0, 0.2, 0.2, 1.0);",
                 "    }",
                 "    else{",
                 "       gl_FragColor = vec4(0.0, 0.0, res, 1.0);",
@@ -398,6 +394,10 @@
                     dataType,
                     availableAttrs;
 
+                if (attributes.length === 0) {
+                    return;
+                }
+
                 // Find all available attributes
                 availableAttrs = {};
                 nAttributes = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
@@ -487,6 +487,103 @@
                 return buffer;
             },
 
+            renderShaderChain: function (shaders, uniforms, attributes, options) {
+                var gl = this.core.gl,
+                    i,
+                    fb,
+                    texture,
+                    width,
+                    height,
+                    shadersLength,
+                    uniformsLength,
+                    attributesLength,
+                    framebufferPoolLength,
+                    texturePoolLength,
+                    shader;
+
+                if (uniforms === undefined) {
+                    uniforms = [];
+                }
+                if (attributes === undefined) {
+                    attributes = [];
+                }
+                if (options === undefined) {
+                    options = {};
+                }
+
+                width = options.width || this.core.canvas.width;
+                height = options.height || this.core.canvas.height;
+                // Store framebuffers and textures for reuse
+                if (this.framebufferPool === undefined) {
+                    this.framebufferPool = [];
+                    for (i = 0; i < 2; i += 1) {
+                        fb = gl.createFramebuffer();
+                        this.framebufferPool.push(fb);
+                    }
+                }
+                if (this.texturePool === undefined) {
+                    this.texturePool = [];
+                    for (i = 0; i < 2; i += 1) {
+                        texture = this.uploadTexture(null);
+
+                        this.texturePool.push(texture);
+                    }
+                }
+
+                shadersLength = shaders.length;
+                uniformsLength = uniforms.length;
+                attributesLength = attributes.length;
+                texturePoolLength = this.texturePool.length;
+                framebufferPoolLength = this.framebufferPool.length;
+
+                // Setup textures
+                for (i = 0; i < texturePoolLength; i += 1) {
+                    texture = this.texturePool[i];
+                    gl.bindTexture(gl.TEXTURE_2D, texture);
+                    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0,
+                                  gl.RGBA, gl.UNSIGNED_BYTE, null);
+                }
+
+                gl.bindTexture(gl.TEXTURE_2D, options.initialTexture);
+
+                for (i = 0; i < shadersLength; i += 1) {
+                    shader = shaders[i];
+                    // Cycle over the texture and framebuffer arrays
+                    texture = this.texturePool[i % texturePoolLength];
+                    fb = this.framebufferPool[i % framebufferPoolLength];
+
+                    gl.useProgram(shader);
+
+                    if (uniformsLength) {
+                        this.setUniforms(shader, uniforms[i % uniformsLength]);
+                    }
+
+                    if (attributesLength) {
+                        this.setAttributes(shader, attributes[i % attributesLength]);
+                    }
+
+                    // On intermediate passes render to framebuffer
+                    if (i < shadersLength - 1) {
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+                        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
+                                                gl.TEXTURE_2D, texture, 0);
+
+                        gl.viewport(0, 0, width, height);
+
+                        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+                        // Next use the texture just rendered to
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                    } else {
+                        // Final pass render to canvas
+                        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                        gl.viewport(0, 0, width, height);
+
+                        gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    }
+                }
+            },
+
 
             getNamedShader: function (name) {
                 var source,
@@ -501,7 +598,7 @@
                 return this.compileShaderProgram(vertSource, fragSource);
             },
 
-            uploadTexture: function (image, texture) {
+            uploadTexture: function (image, texture, flip) {
                 var gl = this.core.gl;
 
                 if (texture === undefined) {

@@ -8,12 +8,10 @@ void main() {
     // to convert to pixel units
     vec2 px = vec2(1.0, 1.0) / uImageSize;
 
-    float thresh = 0.15;
-
-    float neighbourSum = 0.0;
-
     mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);
     mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);
+
+    float valueX = 0.0;
 
     for(int c=0; c<3; c++){
         for(int r=0; r<3; r++){
@@ -22,11 +20,11 @@ void main() {
           vec4 colour = texture2D(uSampler, vTextureCoord + offs);
           float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;
 
-          neighbourSum += grey * kernelVal;
+          valueX += grey * kernelVal;
         }
     }
 
-    float valueX = neighbourSum;
+    float valueY = 0.0;
 
     for(int c=0; c<3; c++){
         for(int r=0; r<3; r++){
@@ -35,11 +33,9 @@ void main() {
           vec4 colour = texture2D(uSampler, vTextureCoord + offs);
           float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;
 
-          neighbourSum += grey * kernelVal;
+          valueY += grey * kernelVal;
         }
     }
-
-    float valueY = neighbourSum;
 
     gl_FragColor = vec4(valueX * valueX, valueY * valueY, valueX * valueY, 1.0);
 }
