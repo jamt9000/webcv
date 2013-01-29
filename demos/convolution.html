@@ -4,7 +4,10 @@
 <!--<script src="http://benvanik.github.com/WebGL-Inspector/core/embed.js"></script>-->
 <script src="../webcv.js"></script>
 <script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
 <script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
 <script src="jquery.js"></script>
 <script>
 /*global WebCV, cv, gl, alert, $, Float32Array */
@@ -16,7 +19,7 @@
     var gl = null;
 
     function updateVideo(vid, vidTexture) {
-        cv.shaders.uploadTexture(vid, vidTexture);
+        cv.gpu.uploadToTexture(vid, vidTexture);
         console.log("update texture");
 
         // sharp [-1, -1, -1, -1, 16, -1, -1, -1, -1]
@@ -92,7 +95,7 @@
 
         shaders.push(convolutionShader);
 
-        var vidTexture = cv.shaders.uploadTexture(vid);
+        var vidTexture = cv.gpu.uploadToTexture(vid);
 
         setInterval(function () { updateVideo(vid, vidTexture); }, 50);
 

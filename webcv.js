@@ -39,6 +39,8 @@
             } catch (e) {
                 console.log("WebGL not available");
             }
+            // XXX should only use if needed
+            this.gl.getExtension('OES_texture_float');
         },
 
         /**
@@ -75,7 +77,6 @@
 
         return texture;
     };
-
 
     WebCV.prototype.setCurrentShader = function (shaderProgram) {
         var gl = this.gl;

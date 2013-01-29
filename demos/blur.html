@@ -19,7 +19,7 @@
     var gl = null;
 
     function updateVideo(vid, vidTexture) {
-        cv.shaders.uploadTexture(vid, vidTexture);
+        cv.gpu.uploadToTexture(vid, vidTexture);
         console.log("update texture");
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -29,10 +29,10 @@
         var vid = document.getElementById("webcamvideo");
         vid.src = stream;
 
-        var convolutionShader = cv.shaders.getNamedShader("sobelEdge");
+        var convolutionShader = cv.shaders.getNamedShader("convolution");
         var uniforms = {
             "uResolution": [400, 300],
-            "uKernel": [-1, 0, 1, -2, 0, 2, -1, 0, 1],
+            "uKernel": [1, 2, 1, 2, 0, 2, 1, 2, 1],
             "uImageSize": [400, 300]
         };
 
@@ -71,7 +71,7 @@
 
         shaders.push(convolutionShader);
 
-        var vidTexture = cv.shaders.uploadTexture(vid);
+        var vidTexture = cv.gpu.uploadToTexture(vid);
 
         setInterval(function () { updateVideo(vid, vidTexture); }, 50);
 

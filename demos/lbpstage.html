@@ -1,0 +1,249 @@
+<!doctype html>
+<html>
+<head>
+<!--<script src="http://benvanik.github.com/WebGL-Inspector/core/embed.js"></script>-->
+<script src="lbpcascade_frontalface.js"></script>
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
+<script src="jquery.js"></script>
+<script>
+/*global WebCV, cv, gl, alert, $, Float32Array, lbpcascade_frontalface, Uint8Array */
+/*jslint bitwise: true */
+"use strict";
+
+function dimensionsOfLBPLookupTable(cascade) {
+    var stages = cascade.stages,
+        nstages = stages.length,
+        maxWeakClassifiers = 0,
+        nweak,
+        k,
+        texWidth,
+        texHeight,
+        lbpArrangements = 256;
+
+    // Find max number of weak classifiers (for width of texture)
+    for (k = 0; k < stages.length; k += 1) {
+        nweak = stages[k].weakClassifiers.length;
+        maxWeakClassifiers = nweak > maxWeakClassifiers ? nweak : maxWeakClassifiers;
+    }
+
+    //maxWeakClassifiers = 10; //XXX
+    //nstages = 1;//XXX
+
+    texWidth = maxWeakClassifiers * lbpArrangements;
+    texHeight = nstages;
+
+    return [texWidth, texHeight];
+}
+
+/**
+ * The pertinent LBP values for each weak classifier are stored packed as the bits
+ * in 8 x 32 bit integers. For easier access by the shader program, this function
+ * transforms them into a texture representation, with a row for each stage, and
+ * a column of 256 bytes for each weak classifier, such that 0 or 255 byte value
+ * indicates if the LBP value with that index is relevant.
+ */
+
+function createLBPLookupTexture(cascade, dim) {
+    var maxWeakClassifiers = 0,
+        stages = cascade.stages,
+        nstages = stages.length,
+        lbpArrangements = 256,
+        texWidth = dim[0],
+        texHeight = dim[1],
+        k,
+        w,
+        lbpMapArray,
+        bitvec,
+        lbpVal,
+        bit;
+
+    lbpMapArray = new Uint8Array(texWidth * texHeight);
+
+    for (k = 0; k < nstages; k += 1) {
+        for (w = 0; w < stages[k].weakClassifiers.length; w += 1) {
+            bitvec = stages[k].weakClassifiers[w].categoryBitVector;
+            for (lbpVal = 0; lbpVal < lbpArrangements; lbpVal += 1) {
+                bit = Boolean(bitvec[lbpVal >> 5] & (1 << (lbpVal & 31)));
+                lbpMapArray[(w * lbpArrangements + lbpVal) + k * texWidth] = bit * 255;
+            }
+        }
+    }
+
+    return cv.gpu.uploadArrayToTexture(lbpMapArray, null, texWidth, texHeight, {filter: gl.NEAREST, format: gl.LUMINANCE, type: gl.UNSIGNED_BYTE, flip: false});
+}
+
+
+function setRectangleCoords(shader, w, h, params) {
+
+    params = params || {};
+    params.flip = params.flip || false;
+
+    var vertCoords,
+        vertBuf,
+        texCoords,
+        texBuf,
+        attrs;
+
+    // A simple rectangle (2 triangles)
+    vertCoords = new Float32Array([
+        0.0,   0.0,
+        w, 0.0,
+        0.0,   h,
+        0.0,   h,
+        w, 0.0,
+        w, h]);
+
+    vertBuf = cv.shaders.arrayBuffer(vertCoords);
+
+
+    // Set up the texture coordinates
+    if (params.flip) {
+        // Flip so texture2D Y axis origin is top left
+        texCoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            0.0, 0.0,
+            0.0, 0.0,
+            1.0, 1.0,
+            1.0, 0.0]);
+    } else {
+        texCoords = new Float32Array([
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0]);
+    }
+
+    texBuf = cv.shaders.arrayBuffer(texCoords);
+
+    attrs = {
+        aTextureCoord: texBuf,
+        aPosition: vertBuf
+    };
+
+    cv.shaders.setAttributes(shader, attrs);
+}
+
+function draw(img) {
+    var imageObject = img.get(0),
+        lbpShader,
+        w = imageObject.width,
+        h = imageObject.height,
+        iw = w + 1,
+        ih = h + 1,
+        outw = w - 24,
+        outh = h - 24,
+        integral = new Float32Array((w + 1) * (h + 1)),
+        grey,
+        integralTexture,
+        lbpLookupTexture,
+        fb,
+        outTexture,
+        stage,
+        k,
+        uniforms,
+        lookupDim;
+
+    lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": {"STAGEN": 0,
+                                                                   "NWEAK": 3}});
+    gl.useProgram(lbpShader);
+
+    console.log("Shader compiled");
+
+    // Create lookup table for LBP values
+    lookupDim = dimensionsOfLBPLookupTable(lbpcascade_frontalface);
+    lbpLookupTexture = createLBPLookupTexture(lbpcascade_frontalface, lookupDim);
+
+    setRectangleCoords(lbpShader, iw, ih, {flip: true});
+
+
+    grey = cv.imgproc.imageToGreyArray(imageObject);
+    cv.imgproc.integralImage(grey, w, h, integral);
+    window.integral = integral;
+
+    outTexture = cv.gpu.blankTexture(outw, outh, {format: gl.LUMINANCE, type: gl.UNSIGNED_BYTE});
+
+    integralTexture = cv.gpu.uploadArrayToTexture(integral, null, iw, ih, {format: gl.LUMINANCE, type: gl.FLOAT, flip: false});
+
+    var start = new Date();
+
+
+    stage = lbpcascade_frontalface.stages[0];
+
+    uniforms = {
+        "uResolution": [iw, ih],
+        "uImageSize": [iw, ih],
+        "stageThreshold": stage.stageThreshold,
+        "leafValues": [],
+        "categoryBitVectors": [],
+        "featureRectangles": [],
+        "lbpLookupTableSize": lookupDim,
+        "uSampler": 0,
+        "lbpLookupTexture": 1
+    };
+
+    for (k = 0; k < stage.weakClassifiers.length; k += 1) {
+        uniforms.leafValues = uniforms.leafValues.concat(stage.weakClassifiers[k].leafValues);
+        uniforms.categoryBitVectors = uniforms.categoryBitVectors.concat(stage.weakClassifiers[k].categoryBitVector);
+        uniforms.featureRectangles = uniforms.featureRectangles.concat(stage.weakClassifiers[k].featureRectangle);
+    }
+
+    console.log(uniforms);
+
+    cv.shaders.setUniforms(lbpShader, uniforms);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, integralTexture);
+
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, lbpLookupTexture);
+
+
+    //fb = gl.createFramebuffer();
+    //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture, 0);
+
+    //gl.viewport(0, 0, outw, outh);
+
+
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+    var end = new Date();
+
+    console.log("Draw time %d", end - start);
+
+}
+
+$(document).ready(function () {
+    var canvas = document.getElementById("glcanvas");
+
+    window.cv = WebCV.create(canvas);
+    if (cv.gl === null) {
+        alert("WebGL not supported");
+    }
+    window.gl = cv.gl;
+
+    var img = $('<img src="newsradiosmall.png" />');
+    window.img = img;
+
+    $(img).load(function () {
+        draw(img);
+    });
+
+    $('body').append(img);
+});
+
+</script>
+</head>
+<body>
+<canvas id="glcanvas" width="161" height="161"></canvas>
+
+</body>
+</html>

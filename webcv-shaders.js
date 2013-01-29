@@ -4,251 +4,7 @@
 (function (WebCV, window, document, undefined) {
     "use strict";
 
-    var shaderSource,
-        shaders;
-
-    shaderSource = {
-        draw2d: {
-            vertex: [
-                "// Uniforms - same for all vertices",
-                "uniform vec2 uResolution;",
-
-                "//Attributes - vertex-specific",
-                "attribute vec2 aPosition;",
-                "attribute vec2 aTextureCoord;",
-
-                "// Varyings - for passing data to fragment shader",
-                "varying vec2 vTextureCoord;",
-
-                "void main() {",
-                "   // convert pixel coords to range -1,1",
-                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
-                "   gl_Position = vec4(normCoords, 0, 1);",
-                "   // pass aTextureCoord to fragment shader unchanged",
-                "   vTextureCoord = aTextureCoord;",
-                "}"
-            ],
-            fragment: [
-                "precision mediump float;",
-                "uniform sampler2D uSampler;",
-                "varying vec2 vTextureCoord; // from vertex shader",
-                "void main() {",
-                "   gl_FragColor = texture2D(uSampler, vTextureCoord);",
-                "}"
-            ]
-        },
-        convolution: {
-            vertex: [
-                "uniform vec2 uResolution;",
-                "attribute vec2 aPosition;",
-                "attribute vec2 aTextureCoord;",
-                "varying vec2 vTextureCoord;",
-                "void main () {",
-                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
-                "   gl_Position = vec4(normCoords, 0, 1);",
-                "   vTextureCoord = aTextureCoord;",
-                "}"
-            ],
-            fragment: [
-                "precision mediump float;",
-                "uniform sampler2D uSampler;",
-                "uniform mat3 uKernel;",
-                "uniform vec2 uImageSize; // for pixel based calculation",
-                "varying vec2 vTextureCoord; // from vertex shader",
-                "void main() {",
-                "    // to convert to pixel units",
-                "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
-                "    // Two considerations: glsl matrices are column major,",
-                "    //                     gl coordinates origin is bottom left",
-                "    vec3 neighbourSum = vec3(0.0, 0.0, 0.0);",
-                "    float totalSum = 0.0;",
-                "    for(int c=0; c<3; c++){",
-                "        for(int r=0; r<3; r++){",
-                "          vec2 offs = vec2(c-1,r-1) * px;",
-                "          float kernelVal = uKernel[c][r];",
-                "          neighbourSum += (texture2D(uSampler, vTextureCoord + offs) * kernelVal).rgb;",
-                "          totalSum += kernelVal;",
-                "        }",
-                "    }",
-                "    gl_FragColor = vec4(neighbourSum / (totalSum <= 0.0 ? 1.0 : totalSum), 1.0);",
-                "}"
-            ]
-        },
-
-        sobelEdge: {
-            vertex: [
-                "uniform vec2 uResolution;",
-                "attribute vec2 aPosition;",
-                "attribute vec2 aTextureCoord;",
-                "varying vec2 vTextureCoord;",
-                "void main () {",
-                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
-                "   gl_Position = vec4(normCoords, 0, 1);",
-                "   vTextureCoord = aTextureCoord;",
-                "}"
-            ],
-            fragment: [
-                "precision mediump float;",
-                "uniform sampler2D uSampler;",
-                "uniform mat3 uKernel;",
-                "uniform vec2 uImageSize; // for pixel based calculation",
-                "varying vec2 vTextureCoord; // from vertex shader",
-                "void main() {",
-                "    // to convert to pixel units",
-                "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
-                "    float thresh = 0.15;",
-                "    float neighbourSum = 0.0;",
-                "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
-                "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
-                "    float valueX = 0.0;",
-                "    for(int c=0; c<3; c++){",
-                "        for(int r=0; r<3; r++){",
-                "          vec2 offs = vec2(c-1,r-1) * px;",
-                "          float kernelVal = sobelX[c][r];",
-                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
-                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          valueX += grey * kernelVal;",
-                "        }",
-                "    }",
-                "    float valueY = 0.0;",
-                "    for(int c=0; c<3; c++){",
-                "        for(int r=0; r<3; r++){",
-                "          vec2 offs = vec2(c-1,r-1) * px;",
-                "          float kernelVal = sobelY[c][r];",
-                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
-                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          valueY += grey * kernelVal;",
-                "        }",
-                "    }",
-                "    float res = length(vec2(valueX, valueY));",
-                "    if(res < thresh){",
-                "      res = 0.0;",
-                "    }",
-                "    gl_FragColor = vec4(res, res, res, 1.0);",
-                "}"
-            ]
-        },
-
-        sobelEdgeHighlight: {
-            vertex: [
-                "uniform vec2 uResolution;",
-                "attribute vec2 aPosition;",
-                "attribute vec2 aTextureCoord;",
-                "varying vec2 vTextureCoord;",
-                "void main () {",
-                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
-                "   gl_Position = vec4(normCoords, 0, 1);",
-                "   vTextureCoord = aTextureCoord;",
-                "}"
-            ],
-            fragment: [
-                "precision mediump float;",
-                "uniform sampler2D uSampler;",
-                "uniform mat3 uKernel;",
-                "uniform vec2 uImageSize; // for pixel based calculation",
-                "varying vec2 vTextureCoord; // from vertex shader",
-                "void main() {",
-                "    // to convert to pixel units",
-                "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
-                "    float thresh = 0.15;",
-                "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
-                "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
-                "    float valueX = 0.0;",
-                "    for(int c=0; c<3; c++){",
-                "        for(int r=0; r<3; r++){",
-                "          vec2 offs = vec2(c-1,r-1) * px;",
-                "          float kernelVal = sobelX[c][r];",
-                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
-                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          valueX += grey * kernelVal;",
-                "        }",
-                "    }",
-                "    float valueY = 0.0;",
-                "    for(int c=0; c<3; c++){",
-                "        for(int r=0; r<3; r++){",
-                "          vec2 offs = vec2(c-1,r-1) * px;",
-                "          float kernelVal = sobelY[c][r];",
-                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
-                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          valueY += grey * kernelVal;",
-                "        }",
-                "    }",
-                "    float res = length(vec2(valueX, valueY));",
-                "    if(res < thresh){",
-                "      res = 0.0;",
-                "    }",
-                "    res = 1.0 - res;",
-                "    vec4 colour = texture2D(uSampler, vTextureCoord);",
-                "    gl_FragColor = vec4( colour.r/res,colour.gba);",
-                "}"
-            ]
-
-        },
-        harris: {
-            vertex: [
-                "uniform vec2 uResolution;",
-                "attribute vec2 aPosition;",
-                "attribute vec2 aTextureCoord;",
-                "varying vec2 vTextureCoord;",
-                "void main () {",
-                "   vec2 normCoords = ((aPosition/uResolution) * 2.0) -1.0;",
-                "   gl_Position = vec4(normCoords, 0, 1);",
-                "   vTextureCoord = aTextureCoord;",
-                "}"
-            ],
-            fragment: [
-                "precision mediump float;",
-                "uniform sampler2D uSampler;",
-                "uniform mat3 uKernel;",
-                "uniform vec2 uImageSize; // for pixel based calculation",
-                "varying vec2 vTextureCoord; // from vertex shader",
-                "void main() {",
-                "    // to convert to pixel units",
-                "    vec2 px = vec2(1.0, 1.0) / uImageSize;",
-                "    mat3 sobelX = mat3(-1,-2,-1,0,0,0,1,2,1);",
-                "    mat3 sobelY = mat3(-1,0,1,-2,0,2,-1,0,1);",
-                "    float valueX = 0.0;",
-                "    for(int c=0; c<3; c++){",
-                "        for(int r=0; r<3; r++){",
-                "          vec2 offs = vec2(c-1,r-1) * px;",
-                "          float kernelVal = sobelX[c][r];",
-                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
-                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          valueX += grey * kernelVal;",
-                "        }",
-                "    }",
-                "    float valueY = 0.0;",
-                "    for(int c=0; c<3; c++){",
-                "        for(int r=0; r<3; r++){",
-                "          vec2 offs = vec2(c-1,r-1) * px;",
-                "          float kernelVal = sobelY[c][r];",
-                "          vec4 colour = texture2D(uSampler, vTextureCoord + offs);",
-                "          float grey = 0.299 * colour.r + 0.587 * colour.g + 0.114 * colour.b;",
-                "          valueY += grey * kernelVal;",
-                "        }",
-                "    }",
-                "    float Ixx = valueX * valueX;",
-                "    float Iyy = valueY * valueY;",
-                "    float Ixy = valueX * valueY;",
-                "    // Determinant and trace of the harris matrix",
-                "    float det = Ixx * Iyy - Ixy * Ixy;",
-                "    float trace = Ixx + Iyy;",
-                "    // Reflect large eigenvalues",
-                "    float res = 100000000.0 * det / trace;",
-                "    if(res > 10.0){",
-                "        gl_FragColor = vec4(1.0, 0, 0, 1.0);",
-                "    } else if(res > 1.0){",
-                "        gl_FragColor = vec4(0, 0.2, 0.2, 1.0);",
-                "    }",
-                "    else{",
-                "       gl_FragColor = vec4(0.0, 0.0, res, 1.0);",
-                "    }",
-                "}"
-            ]
-        }
-    };
-
-    shaders = function () {
+    var shaders = function () {
         return {
             compileShaderProgram: function (vertSource, fragSource) {
                 var core = this.core,
@@ -300,12 +56,15 @@
                     val,
                     k;
 
+                gl.useProgram(shaderProgram);
+
                 // Find all available uniforms
                 uniforms = {};
                 nUniforms = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
                 for (k = 0; k < nUniforms; k += 1) {
                     activeInfo = gl.getActiveUniform(shaderProgram, k);
-                    uniforms[activeInfo.name] = activeInfo;
+                    // name value for arrays is like "thename[0]"
+                    uniforms[activeInfo.name.split('[')[0]] = activeInfo;
                 }
 
                 for (opt in options) {
@@ -316,8 +75,22 @@
                                 activeInfo = uniforms[opt];
                                 val = options[opt];
 
-                                if (val instanceof Number) {
-                                    gl.uniform1f(location, val);
+                                if (typeof val === "number") {
+                                    switch (activeInfo.type) {
+                                    case gl.FLOAT:
+                                        gl.uniform1f(location, val);
+                                        break;
+                                    case gl.INT:
+                                        gl.uniform1i(location, val);
+                                        break;
+                                    case gl.SAMPLER_2D:
+                                        gl.uniform1i(location, val);
+                                        break;
+                                    case gl.SAMPLER_CUBE:
+                                        gl.uniform1i(location, val);
+                                        break;
+                                    }
+
                                 } else {
                                     // Monstruous switch statement to choose correct uniform function
                                     // based on the uniform's type
@@ -394,6 +167,8 @@
                     dataType,
                     availableAttrs;
 
+                gl.useProgram(shaderProgram);
+
                 if (attributes.length === 0) {
                     return;
                 }
@@ -427,7 +202,6 @@
                         // Allowed data types: BYTE, UNSIGNED_BYTE, SHORT, UNSIGNED_SHORT, FLOAT
                         // Allowed GLSL attribute sizes: float, vec2, vec3, vec4, mat2, mat3, and mat4 (all float)
 
-                        // use components per attribute from attribute's activeInfo
                         // use data type stored on buffer if available
                         dataType = buffer.webcv_dataType || gl.FLOAT;
 
@@ -524,7 +298,7 @@
                 if (this.texturePool === undefined) {
                     this.texturePool = [];
                     for (i = 0; i < 2; i += 1) {
-                        texture = this.uploadTexture(null);
+                        texture = gl.createTexture();
 
                         this.texturePool.push(texture);
                     }
@@ -584,36 +358,64 @@
                 }
             },
 
-
-            getNamedShader: function (name) {
+            /**
+             * If one name is provided, first try to find vertex and fragment shader with same name, otherwise
+             * use default draw2d vertex shader
+             * If two names, first is vertex shader, second is fragment shader
+             */
+            getNamedShader: function (name1, name2, params) {
                 var source,
                     vertSource,
-                    fragSource;
+                    fragSource,
+                    defines,
+                    d,
+                    definesString;
 
-                source = shaderSource[name];
+                // Allow for only 1 name
 
-                vertSource = source.vertex.join('\n');
-                fragSource = source.fragment.join('\n');
-
-                return this.compileShaderProgram(vertSource, fragSource);
-            },
-
-            uploadTexture: function (image, texture, flip) {
-                var gl = this.core.gl;
-
-                if (texture === undefined) {
-                    texture = gl.createTexture();
+                if (typeof name2 !== "string") {
+                    params = name2;
+                    name2 = undefined;
                 }
 
-                gl.bindTexture(gl.TEXTURE_2D, texture);
-                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                params = params || {};
 
-                return texture;
+                if (name2 === undefined) {
+                    if (WebCV.SHADERSOURCE.fragment[name1] !== undefined) {
+                        if (WebCV.SHADERSOURCE.vertex[name1] !== undefined) {
+                            vertSource = WebCV.SHADERSOURCE.vertex[name1].join('\n');
+                            fragSource = WebCV.SHADERSOURCE.fragment[name1].join('\n');
+                        } else {
+                            vertSource = WebCV.SHADERSOURCE.vertex.draw2d.join('\n');
+                            fragSource = WebCV.SHADERSOURCE.fragment[name1].join('\n');
+                        }
+                    } else {
+                        throw "No fragment shader with specified name";
+                    }
+                } else {
+                    vertSource = WebCV.SHADERSOURCE.vertex[name1].join('\n');
+                    fragSource = WebCV.SHADERSOURCE.fragment[name2].join('\n');
+                }
+
+                // Insert compile-time #defines
+
+                if (params.defines) {
+                    defines = params.defines;
+                    definesString = "";
+
+                    for (d in defines) {
+                        if (defines.hasOwnProperty(d)) {
+                            definesString += "#define " + d + " " + defines[d] + "\n";
+                        }
+                    }
+
+                    vertSource = definesString + "\n" + vertSource;
+                    fragSource = definesString + "\n" + fragSource;
+                }
+
+
+
+                return this.compileShaderProgram(vertSource, fragSource);
             }
         };
     };

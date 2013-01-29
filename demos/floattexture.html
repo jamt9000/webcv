@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+<!--<script src="http://benvanik.github.com/WebGL-Inspector/core/embed.js"></script>-->
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
+<script src="jquery.js"></script>
+<script>
+/*global WebCV, cv, gl, alert, $, Float32Array */
+"use strict";
+
+$(document).ready(function () {
+    var canvas = document.getElementById("glcanvas");
+
+    window.cv = WebCV.create(canvas);
+    if (cv.gl === null) {
+        alert("WebGL not supported");
+    }
+    window.gl = cv.gl;
+
+    var img = $('<img src="newsradiosmall.png" />');
+
+    $(img).load(function () {
+        var imageObject = img.get(0),
+            w = imageObject.width,
+            h = imageObject.height,
+            iw = w + 1,
+            ih = w + 1,
+            integral = new Float32Array((w + 1) * (h + 1)),
+            grey;
+
+        grey = cv.imgproc.imageToGreyArray(imageObject);
+
+        cv.imgproc.integralImage(grey, w, h, integral);
+
+        cv.gpu.uploadArrayToTexture(integral, null, iw, ih, {format: gl.LUMINANCE, type: gl.FLOAT});
+    });
+
+    $('body').append(img);
+});
+
+</script>
+</head>
+<body>
+<canvas id="glcanvas" width="400" height="300"></canvas>
+
+</body>
+</html>
