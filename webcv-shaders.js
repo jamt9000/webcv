@@ -4,6 +4,59 @@
 (function (WebCV, window, document, undefined) {
     "use strict";
 
+    /**
+     * Find all the active uniforms for the given shader, and return an object 
+     * containing the ActiveInfo (name, size, type) for each uniform, as well as
+     * the "Location" (used for setting the uniform)
+     */
+    function activeUniforms(gl, shaderProgram) {
+        var uniforms,
+            nUniforms,
+            k,
+            activeInfo,
+            uniformName;
+
+        // Find all available uniforms
+        uniforms = {};
+        nUniforms = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
+        for (k = 0; k < nUniforms; k += 1) {
+            activeInfo = gl.getActiveUniform(shaderProgram, k);
+
+            // name value for arrays is like "thename[0]"
+            uniformName = activeInfo.name.split('[')[0];
+
+            // Add location to info
+            activeInfo.location = gl.getUniformLocation(shaderProgram, uniformName);
+
+            uniforms[uniformName] = activeInfo;
+        }
+
+        return uniforms;
+    }
+
+    /**
+     * Find all the active attributes for the given shader, and return an object 
+     * containing the ActiveInfo and Location for each, analogously as for the 
+     * uniforms.
+     */
+    function activeAttributes(gl, shaderProgram) {
+        var attributes,
+            nAttributes,
+            k,
+            activeInfo;
+
+        // Find all available attributes
+        attributes = {};
+        nAttributes = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
+        for (k = 0; k < nAttributes; k += 1) {
+            activeInfo = gl.getActiveAttrib(shaderProgram, k);
+            activeInfo.location = gl.getAttribLocation(shaderProgram, activeInfo.name);
+            attributes[activeInfo.name] = activeInfo;
+        }
+
+        return attributes;
+    }
+
     var shaders = function () {
         return {
             compileShaderProgram: function (vertSource, fragSource) {
@@ -43,6 +96,10 @@
                 }
                 //gl.useProgram(shaderProgram);
 
+                // Cache uniform and attribute info
+                shaderProgram.webcv_uniforms = activeUniforms(gl, shaderProgram);
+                shaderProgram.webcv_attributes = activeAttributes(gl, shaderProgram);
+
                 return shaderProgram;
             },
 
@@ -58,20 +115,14 @@
 
                 gl.useProgram(shaderProgram);
 
-                // Find all available uniforms
-                uniforms = {};
-                nUniforms = gl.getProgramParameter(shaderProgram, gl.ACTIVE_UNIFORMS);
-                for (k = 0; k < nUniforms; k += 1) {
-                    activeInfo = gl.getActiveUniform(shaderProgram, k);
-                    // name value for arrays is like "thename[0]"
-                    uniforms[activeInfo.name.split('[')[0]] = activeInfo;
-                }
+                // Try to use cached uniform info
+                uniforms = shaderProgram.webcv_uniforms || activeUniforms(gl, shaderProgram);
 
                 for (opt in options) {
                     if (options.hasOwnProperty(opt)) {
                         if (typeof opt === "string") {
                             if (uniforms[opt] !== undefined) {
-                                location = gl.getUniformLocation(shaderProgram, opt);
+                                location = uniforms[opt].location;
                                 activeInfo = uniforms[opt];
                                 val = options[opt];
 
@@ -155,7 +206,7 @@
                 }
             },
 
-            setAttributes: function (shaderProgram, attributes) {
+            setAttributes: function (shaderProgram, options) {
                 var gl = this.core.gl,
                     location,
                     a,
@@ -165,27 +216,21 @@
                     k,
                     activeInfo,
                     dataType,
-                    availableAttrs;
+                    attributes;
 
                 gl.useProgram(shaderProgram);
 
-                if (attributes.length === 0) {
+                if (options.length === 0) {
                     return;
                 }
 
-                // Find all available attributes
-                availableAttrs = {};
-                nAttributes = gl.getProgramParameter(shaderProgram, gl.ACTIVE_ATTRIBUTES);
-                for (k = 0; k < nAttributes; k += 1) {
-                    activeInfo = gl.getActiveAttrib(shaderProgram, k);
-                    availableAttrs[activeInfo.name] = activeInfo;
-                }
+                attributes = shaderProgram.webcv_attributes || activeAttributes(gl, shaderProgram);
 
-                for (a in attributes) {
-                    if (attributes.hasOwnProperty(a)) {
-                        buffer = attributes[a];
-                        location = gl.getAttribLocation(shaderProgram, a);
-                        activeInfo = availableAttrs[a];
+                for (a in options) {
+                    if (options.hasOwnProperty(a)) {
+                        buffer = options[a];
+                        location = attributes[a].location;
+                        activeInfo = attributes[a];
 
                         if (activeInfo === undefined) {
                             throw "Attribute not declared in shader";
