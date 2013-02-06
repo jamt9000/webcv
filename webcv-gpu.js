@@ -1,5 +1,5 @@
 /*jslint es5: true, browser: true, devel: true */
-/*global WebCV, Float32Array, Uint8ClampedArray */
+/*global WebCV, Float32Array, Uint8Array, Uint8ClampedArray */
 
 (function (WebCV, window, document, undefined) {
     "use strict";
@@ -18,8 +18,6 @@
             if (flip === undefined) {
                 flip = 1;
             }
-
-            console.log(flip);
 
             gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, flip);
 
@@ -101,6 +99,52 @@
                 texImage(gl, pixels, params);
 
                 return texture;
+            },
+
+            downloadFramebuffer: function (fb, outArray, params) {
+                var gl = this.core.gl,
+                    oldfb = gl.getParameter(gl.FRAMEBUFFER_BINDING),
+                    view = gl.getParameter(gl.VIEWPORT),
+                    x = 0,
+                    y = 0,
+                    w = view[2],
+                    h = view[3],
+                    format = gl.RGBA,
+                    type = gl.UNSIGNED_BYTE;
+
+                params = params || {};
+
+                if (params.x !== undefined) {
+                    x = params.x;
+                }
+
+                if (params.y !== undefined) {
+                    y = params.y;
+                }
+
+                if (params.width !== undefined) {
+                    w = params.width;
+                }
+
+                if (params.height !== undefined) {
+                    h = params.height;
+                }
+
+                format = params.format || format;
+                type = params.type || type;
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+                if (outArray === undefined || outArray === null) {
+                    outArray = new Uint8Array(w * h * 4);
+                }
+
+                gl.readPixels(x, y, w, h, format, type, outArray);
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, oldfb);
+
+                return outArray;
+
             }
         };
     };
