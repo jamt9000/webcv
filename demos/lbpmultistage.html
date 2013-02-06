@@ -31,9 +31,6 @@ function dimensionsOfLBPLookupTable(cascade) {
         maxWeakClassifiers = nweak > maxWeakClassifiers ? nweak : maxWeakClassifiers;
     }
 
-    //maxWeakClassifiers = 10; //XXX
-    //nstages = 1;//XXX
-
     texWidth = maxWeakClassifiers * lbpArrangements;
     texHeight = nstages;
 
@@ -48,11 +45,12 @@ function dimensionsOfLBPLookupTable(cascade) {
  * indicates if the LBP value with that index is relevant.
  */
 
-function createLBPLookupTexture(cascade, dim) {
+function createLBPLookupTexture(cascade) {
     var maxWeakClassifiers = 0,
         stages = cascade.stages,
         nstages = stages.length,
         lbpArrangements = 256,
+        dim = dimensionsOfLBPLookupTable(cascade),
         texWidth = dim[0],
         texHeight = dim[1],
         k,
@@ -78,7 +76,7 @@ function createLBPLookupTexture(cascade, dim) {
 }
 
 
-function setRectangleCoords(shader, w, h, params) {
+function viewAlignedRectangleAttributes(shader, w, h, params) {
 
     params = params || {};
     params.flip = params.flip || false;
@@ -99,7 +97,6 @@ function setRectangleCoords(shader, w, h, params) {
         w, h]);
 
     vertBuf = cv.shaders.arrayBuffer(vertCoords);
-
 
     // Set up the texture coordinates
     if (params.flip) {
@@ -128,92 +125,144 @@ function setRectangleCoords(shader, w, h, params) {
         aPosition: vertBuf
     };
 
-    cv.shaders.setAttributes(shader, attrs);
+    return attrs;
+}
+
+function setupShaders(cascade, w, h) {
+    var shaderArray = [],
+        // Integral image width and height
+        iw = w + 1,
+        ih = h + 1,
+        vertexAttributes,
+        lookupDim,
+        lbpShader,
+        nstages = cascade.stages.length,
+        nweak,
+        s,
+        k,
+        stage,
+        uniforms;
+
+    // Create lookup table texture for LBP values
+    lookupDim = dimensionsOfLBPLookupTable(cascade);
+
+    // Get attributes
+    vertexAttributes = viewAlignedRectangleAttributes(lbpShader, iw, ih, {flip: true});
+
+    for (s = 0; s < nstages; s += 1) {
+        stage = cascade.stages[s];
+        nweak = stage.weakClassifiers.length;
+
+        lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": {"STAGEN": s,
+                                                                       "NWEAK": nweak}});
+        gl.useProgram(lbpShader);
+
+        uniforms = {
+            "uResolution": [iw, ih],
+            "uImageSize": [iw, ih],
+            "stageThreshold": stage.stageThreshold,
+            "leafValues": [],
+            "featureRectangles": [],
+            "lbpLookupTableSize": lookupDim,
+            "uSampler": 0,
+            "lbpLookupTexture": 1,
+            "activeWindows": 2
+
+        };
+
+        for (k = 0; k < nweak; k += 1) {
+            uniforms.leafValues = uniforms.leafValues.concat(stage.weakClassifiers[k].leafValues);
+            uniforms.featureRectangles = uniforms.featureRectangles.concat(stage.weakClassifiers[k].featureRectangle);
+        }
+
+        cv.shaders.setUniforms(lbpShader, uniforms);
+
+        cv.shaders.setAttributes(lbpShader, vertexAttributes);
+
+        shaderArray.push(lbpShader);
+    }
+
+    return shaderArray;
 }
 
 function draw(img) {
     var imageObject = img.get(0),
-        lbpShader,
         w = imageObject.width,
         h = imageObject.height,
         iw = w + 1,
         ih = h + 1,
         outw = w - 24,
         outh = h - 24,
+        cascade = lbpcascade_frontalface,
         integral = new Float32Array((w + 1) * (h + 1)),
         grey,
         integralTexture,
         lbpLookupTexture,
         fb,
-        outTexture,
-        stage,
-        k,
-        uniforms,
-        lookupDim;
+        outTexture1,
+        outTexture2,
+        outTextures,
+        lbpShaders,
+        stageN;
 
-    lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": {"STAGEN": 0,
-                                                                   "NWEAK": 3}});
-    gl.useProgram(lbpShader);
-
-    console.log("Shader compiled");
-
-    // Create lookup table for LBP values
-    lookupDim = dimensionsOfLBPLookupTable(lbpcascade_frontalface);
-    lbpLookupTexture = createLBPLookupTexture(lbpcascade_frontalface, lookupDim);
-
-    setRectangleCoords(lbpShader, iw, ih, {flip: true});
-
-
+    // Integral image
     grey = cv.imgproc.imageToGreyArray(imageObject);
     cv.imgproc.integralImage(grey, w, h, integral);
-    window.integral = integral;
-
-    outTexture = cv.gpu.blankTexture(outw, outh, {format: gl.LUMINANCE, type: gl.UNSIGNED_BYTE});
-
     integralTexture = cv.gpu.uploadArrayToTexture(integral, null, iw, ih, {format: gl.LUMINANCE, type: gl.FLOAT, flip: false});
 
-    stage = lbpcascade_frontalface.stages[0];
+    // LBP Lookup Texture
+    lbpLookupTexture = createLBPLookupTexture(cascade);
 
-    uniforms = {
-        "uResolution": [iw, ih],
-        "uImageSize": [iw, ih],
-        "stageThreshold": stage.stageThreshold,
-        "leafValues": [],
-        "categoryBitVectors": [],
-        "featureRectangles": [],
-        "lbpLookupTableSize": lookupDim,
-        "uSampler": 0,
-        "lbpLookupTexture": 1
-    };
+    // Output textures for pingponging
+    outTexture1 = cv.gpu.blankTexture(iw, ih, {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
+    outTexture2 = cv.gpu.blankTexture(iw, ih, {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
 
-    for (k = 0; k < stage.weakClassifiers.length; k += 1) {
-        uniforms.leafValues = uniforms.leafValues.concat(stage.weakClassifiers[k].leafValues);
-        uniforms.categoryBitVectors = uniforms.categoryBitVectors.concat(stage.weakClassifiers[k].categoryBitVector);
-        uniforms.featureRectangles = uniforms.featureRectangles.concat(stage.weakClassifiers[k].featureRectangle);
-    }
-
-    console.log(uniforms);
-
-    var start = new Date();
+    outTextures = [outTexture1, outTexture2];
 
 
-    cv.shaders.setUniforms(lbpShader, uniforms);
+    lbpShaders = setupShaders(cascade, w, h);
 
+    window.lbpShaders = lbpShaders;
+
+    // Bind textures
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, integralTexture);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, lbpLookupTexture);
 
+    fb = gl.createFramebuffer();
+    window.fb = fb;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 
-    //fb = gl.createFramebuffer();
+    var start = new Date();
+
+
+    gl.viewport(0, 0, iw, ih);
     //gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-    //gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture, 0);
 
-    //gl.viewport(0, 0, outw, outh);
+    var nstages = cascade.stages.length;
+
+    for (stageN = 0; stageN < nstages; stageN += 1) {
+        var outTexture = outTextures[stageN % 2];
+        var activeWindowTexture = outTextures[(stageN + 1) % 2];
+
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture, 0);
+
+        gl.useProgram(lbpShaders[stageN]);
 
 
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.activeTexture(gl.TEXTURE2);
+        gl.bindTexture(gl.TEXTURE_2D, activeWindowTexture);
+
+        if (stageN === nstages - 1) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        } else {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        }
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+    }
 
     var end = new Date();
 

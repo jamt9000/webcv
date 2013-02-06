@@ -1,0 +1,125 @@
+<!doctype html>
+<html>
+<head>
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
+<script src="jquery.js"></script>
+<script>
+/*global WebCV, cv, gl, alert, $, Float32Array */
+"use strict";
+
+function viewAlignedRectangleAttributes(w, h, params) {
+
+    params = params || {};
+    params.flip = params.flip || false;
+
+    var vertCoords,
+        vertBuf,
+        texCoords,
+        texBuf,
+        attrs;
+
+    // A simple rectangle (2 triangles)
+    vertCoords = new Float32Array([
+        0.0,   0.0,
+        w, 0.0,
+        0.0,   h,
+        0.0,   h,
+        w, 0.0,
+        w, h]);
+
+    vertBuf = cv.shaders.arrayBuffer(vertCoords);
+
+    // Set up the texture coordinates
+    if (params.flip) {
+        // Flip so texture2D Y axis origin is top left
+        texCoords = new Float32Array([
+            0.0, 1.0,
+            1.0, 1.0,
+            0.0, 0.0,
+            0.0, 0.0,
+            1.0, 1.0,
+            1.0, 0.0]);
+    } else {
+        texCoords = new Float32Array([
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0]);
+    }
+
+    texBuf = cv.shaders.arrayBuffer(texCoords);
+
+    attrs = {
+        aTextureCoord: texBuf,
+        aPosition: vertBuf
+    };
+
+    return attrs;
+}
+
+$(document).ready(function () {
+    var canvas = document.getElementById("glcanvas");
+
+    window.cv = WebCV.create(canvas);
+    if (cv.gl === null) {
+        alert("WebGL not supported");
+    }
+    window.gl = cv.gl;
+
+    var img = $('<img src="newsradiosmall.png" />');
+
+    var shader = cv.shaders.getNamedShader("draw2d");
+
+    var uniforms = {
+        "uResolution": [400, 300],
+        "uImageSize": [400, 300]
+    };
+
+    var attrs = viewAlignedRectangleAttributes(400, 300);
+
+    cv.shaders.setUniforms(shader, uniforms);
+    cv.shaders.setAttributes(shader, attrs);
+
+    $(img).load(function () {
+        var image = img[0];
+        var imageTex = cv.gpu.uploadToTexture(image);
+        var fbTex = cv.gpu.blankTexture(400, 300);
+
+        var fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
+                                                gl.TEXTURE_2D, fbTex, 0);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, imageTex);
+
+        gl.viewport(0, 0, 400, 300);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, fbTex);
+
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        window.fb = fb;
+    });
+
+    $('body').append(img);
+});
+
+</script>
+</head>
+<body>
+<canvas id="glcanvas" width="400" height="300"></canvas>
+
+</body>
+</html>
