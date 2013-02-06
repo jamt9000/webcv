@@ -86,7 +86,9 @@
             },
 
             uploadToTexture: function (pixels, texture, params) {
-                var gl = this.core.gl;
+                var gl = this.core.gl,
+                    // Save current texture binding
+                    oldTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
 
                 params = params || {};
 
@@ -97,6 +99,9 @@
                 setParams(gl, params);
 
                 texImage(gl, pixels, params);
+
+                // Restore previous texture binding
+                gl.bindTexture(gl.TEXTURE_2D, oldTexture);
 
                 return texture;
             },
