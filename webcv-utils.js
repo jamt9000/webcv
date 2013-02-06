@@ -42,6 +42,44 @@
                     return false;
                 }
                 return true;
+            },
+
+            showRGBA: function (array, w, h) {
+                var canvas = document.createElement("canvas"),
+                    context,
+                    imageData;
+
+                canvas.width = w;
+                canvas.height = h;
+                context = canvas.getContext('2d');
+                imageData = context.createImageData(w, h);
+                imageData.data.set(array);
+                context.putImageData(imageData, 0, 0);
+                document.body.appendChild(canvas);
+            },
+
+            showGrayscale: function (data_u8, w, h) {
+                var canvas = document.createElement("canvas"),
+                    context,
+                    imageData,
+                    k,
+                    grayByte;
+
+                canvas.width = w;
+                canvas.height = h;
+                context = canvas.getContext('2d');
+                imageData = context.createImageData(w, h);
+
+                for (k = 0; k < w * h; k += 1) {
+                    grayByte = data_u8[k];
+                    imageData.data[k * 4] = grayByte;
+                    imageData.data[k * 4 + 1] = grayByte;
+                    imageData.data[k * 4 + 2] = grayByte;
+                    imageData.data[k * 4 + 3] = 255;
+                }
+
+                context.putImageData(imageData, 0, 0);
+                document.body.appendChild(canvas);
             }
         };
     };
