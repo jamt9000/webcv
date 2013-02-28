@@ -19,7 +19,7 @@
     var gl = null;
 
     function updateVideo(vid, vidTexture) {
-        cv.shaders.uploadTexture(vid, vidTexture);
+        cv.gpu.uploadToTexture(vid, vidTexture);
         console.log("update texture");
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -71,7 +71,7 @@
 
         shaders.push(convolutionShader);
 
-        var vidTexture = cv.shaders.uploadTexture(vid);
+        var vidTexture = cv.gpu.uploadToTexture(vid);
 
         setInterval(function () { updateVideo(vid, vidTexture); }, 50);
 
