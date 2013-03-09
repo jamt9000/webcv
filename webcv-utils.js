@@ -44,6 +44,19 @@
                 return true;
             },
 
+            /**
+             * Wrapper for requestAnimationFrame
+             */
+            requestAnimationFrame: function (callback) {
+                var requestAnimFunction = (window.requestAnimationFrame || window.webkitRequestAnimationFrame
+                                           || window.mozRequestAnimationFrame || window.msRequestAnimationFrame);
+                if (requestAnimFunction) {
+                    return requestAnimFunction(callback);
+                } else {
+                    setTimeout(callback, 30);
+                }
+            },
+
             showRGBA: function (array, w, h) {
                 var canvas = document.createElement("canvas"),
                     context,
