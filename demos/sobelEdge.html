@@ -19,21 +19,31 @@
     var gl = null;
 
     function updateVideo(vid, vidTexture) {
-        cv.gpu.uploadToTexture(vid, vidTexture);
-        console.log("update texture");
+        if (vid.readyState == vid.HAVE_ENOUGH_DATA) {
+            cv.gpu.uploadToTexture(vid, vidTexture);
+            console.log("update texture");
+        }
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, vidTexture);
+
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        cv.utils.requestAnimationFrame(function() { updateVideo(vid, vidTexture); });
     }
 
     function videoLoaded(stream) {
         var vid = document.getElementById("webcamvideo");
         vid.src = stream;
+        var width = vid.width;
+        var height = vid.height;
 
         var convolutionShader = cv.shaders.getNamedShader("sobelEdge");
         var uniforms = {
-            "uResolution": [400, 300],
+            "uResolution": [width, height],
             "uKernel": [-1, 0, 1, -2, 0, 2, -1, 0, 1],
-            "uImageSize": [400, 300]
+            "uImageSize": [width, height]
         };
 
         gl.useProgram(convolutionShader);
@@ -43,11 +53,11 @@
         // A simple rectangle (2 triangles)
         var vertCoords = new Float32Array([
             0.0,   0.0,
-            400.0, 0.0,
-            0.0,   300.0,
-            0.0,   300.0,
-            400.0, 0.0,
-            400.0, 300.0]);
+            width, 0.0,
+            0.0,   height,
+            0.0,   height,
+            width, 0.0,
+            width, height]);
 
         var vertBuf = cv.shaders.arrayBuffer(vertCoords);
 
@@ -71,9 +81,9 @@
 
         shaders.push(convolutionShader);
 
-        var vidTexture = cv.gpu.uploadToTexture(vid);
+        var vidTexture = cv.gpu.blankTexture(width, height);
 
-        setInterval(function () { updateVideo(vid, vidTexture); }, 50);
+        updateVideo(vid, vidTexture);
 
     }
 
@@ -95,7 +105,7 @@
 </script>
 </head>
 <body>
-<video id="webcamvideo" autoplay width="400" height="300"></video>
+<video id="webcamvideo" autoplay width="400" height="300" preload="auto"></video>
 <canvas id="glcanvas" width="400" height="300"></canvas>
 
 </body>
