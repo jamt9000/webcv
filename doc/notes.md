@@ -27,4 +27,4 @@ can be used to change the output range of the computation. For example, when doi
 face detection at different scales, the "sliding window" of the detector will change size, meaning less pixel positions need to be considered for larger windows, so the size of the
 output grid should be smaller.
 
-[!Decreased output range for larger window](./facescale.png)
+![Decreased output range for larger window](./facescale.png)
