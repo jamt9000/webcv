@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+<script src="lbpcascade_frontalface.js"></script>
+
+
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
+<script src="../webcv-facedetect.js"></script>
+<script src="jquery.js"></script>
+<style>
+    .webcvimage {
+        border: solid 1px black;
+    }
+</style>
+<script>
+/*global WebCV, cv, gl, alert, $, Float32Array, lbpcascade_frontalface, Uint8Array */
+/*jslint bitwise: true */
+
+$(document).ready(function () {
+    var canvas = document.getElementById("glcanvas");
+
+    window.cv = WebCV.create(canvas);
+    if (cv.gl === null) {
+        alert("WebGL not supported");
+    }
+    window.gl = cv.gl;
+
+    var img = $('<img src="newsradiosmall.png" />');
+    window.img = img;
+
+    $(img).load(function () {
+        // Do stuff with image
+        fd = new FaceDetector(lbpcascade_frontalface, img.width(), img.height());
+        window.fd = fd;
+        window.rects = fd.detect(img.get(0));
+
+        if (!showImage) {
+            $(window.rects).each(function(n,e) {
+                var box = $('<div>');
+                box.css({"border": "solid 1px red",
+                         "position": "absolute",
+                         "left": e[0],
+                         "top": e[1],
+                         "width": e[2],
+                         "height": e[3]});
+                $('#faceimage').append(box);
+            });
+        }
+    });
+
+    $('body #faceimage').append(img);
+});
+
+</script>
+</head>
+<body>
+<canvas id="glcanvas" width="1" height="1"></canvas>
+
+<div id="faceimage" style="position:relative">
+
+</div>
+
+</body>
+</html>

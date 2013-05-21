@@ -1,9 +1,14 @@
+var showImage = false;
+
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
         throw new Error("FaceDetector must be instantiated with new");
     }
 
     this.cascade = cascade;
+
+    this.scaleFactor = 1.2;
+    this.windowSize = 24;
 
     // Dimensions of image detector will run on
     this.width = width;
@@ -26,6 +31,8 @@ var FaceDetector = function (cascade, width, height) {
     this.fb = gl.createFramebuffer();
 
     this.lbpShaders = this.setupShaders();
+
+    this.pixels = new Uint8Array(this.integralWidth * this.integralHeight * 4);
 }
 
 FaceDetector.prototype.detect = function (image) {
@@ -42,7 +49,7 @@ FaceDetector.prototype.detect = function (image) {
     var integral = new Float32Array(iw * ih);
     cv.imgproc.integralImage(grey, this.width, this.height, integral);
     var integralTexture = cv.gpu.uploadArrayToTexture(integral, null, iw, ih, 
-                       {format: gl.LUMINANCE, type: gl.FLOAT, flip: false});
+                       {format: gl.LUMINANCE, filter: gl.NEAREST, type: gl.FLOAT, flip: false});
 
     // Bind textures for the integral image and LBP lookup table
     gl.activeTexture(gl.TEXTURE0);
@@ -53,31 +60,79 @@ FaceDetector.prototype.detect = function (image) {
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
 
-    gl.viewport(0, 0, iw, ih);
+
 
     var outTextures = [this.outTexture1, this.outTexture2];
 
     var nstages = cascade.stages.length;
-    for (stageN = 0; stageN < nstages; stageN += 1) {
-        var outTexture = outTextures[stageN % 2];
-        var activeWindowTexture = outTextures[(stageN + 1) % 2];
+    var scaleN = 0;
 
-        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture, 0);
+    var timeStart = new Date();
+    var rectangles = []
 
-        gl.useProgram(this.lbpShaders[stageN]);
-
-
-        gl.activeTexture(gl.TEXTURE2);
-        gl.bindTexture(gl.TEXTURE_2D, activeWindowTexture);
-
-        if (stageN === nstages - 1) {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        } else {
-            gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
+    for (scale = 1.0; scale * this.windowSize < w && scale * this.windowSize < h; scale *= this.scaleFactor) {
+        var scaledWindowSize = Math.round(scale * this.windowSize);
+        var drawWidth = this.width - scaledWindowSize;
+        var drawHeight = this.height - scaledWindowSize;
+        var readWidth = drawWidth;
+        var readHeight = drawHeight;
+        if(showImage) {
+            readWidth = iw;
+            readHeight = ih;
         }
 
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        console.log(drawWidth, drawHeight);
+        gl.viewport(0, 0, drawWidth, drawHeight);
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.fb);
+
+
+
+        for (stageN = 0; stageN < nstages; stageN += 1) {
+            var outTexture = outTextures[stageN % 2];
+            var activeWindowTexture = outTextures[(stageN + 1) % 2];
+
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture, 0);
+            gl.clearColor(0,1,0,1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            gl.useProgram(this.lbpShaders[stageN]);
+            cv.shaders.setUniforms(this.lbpShaders[stageN], {"scale": scale});
+
+            gl.activeTexture(gl.TEXTURE2);
+            gl.bindTexture(gl.TEXTURE_2D, activeWindowTexture);
+
+            //XXX
+            if (showImage && stageN === 0) {
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                break;
+            }
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        }
+        gl.readPixels(0, 0, readWidth, readHeight, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+
+
+        cv.utils.showRGBA(this.pixels, readWidth, readHeight);
+
+        // Gather the rectangles from the image
+        var k, x, y;
+        for (k = 0; k < drawWidth * drawHeight; k += 1) {
+            if (this.pixels[k * 4] == 255) {
+                x = (k) % drawWidth;
+                y = Math.floor((k) / drawWidth);
+                rectangles.push([x, y, scaledWindowSize, scaledWindowSize]);
+            }
+        }
+        //XXX
+        if (scaleN == 8) {
+            break;
+        }
+
+        scaleN += 1;
     }
+    console.log(new Date() - timeStart);
+    return rectangles;
 }
 
 FaceDetector.prototype.setupShaders = function () {
@@ -96,15 +151,29 @@ FaceDetector.prototype.setupShaders = function () {
         stage,
         uniforms;
 
-    // Get attributes
-    vertexAttributes = viewAlignedRectangleAttributes(lbpShader, iw, ih, {flip: true});
+    // A simple rectangle (2 triangles)
+    var vertCoords = new Float32Array([
+        0.0,   0.0,
+        iw, 0.0,
+        0.0,   ih,
+        0.0,   ih,
+        iw, 0.0,
+        iw, ih]);
+
+    var vertBuf = cv.shaders.arrayBuffer(vertCoords);
 
     for (s = 0; s < nstages; s += 1) {
         stage = cascade.stages[s];
         nweak = stage.weakClassifiers.length;
+        
+        var defs = {"STAGEN": s,
+                    "NWEAK": nweak};
 
-        lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": {"STAGEN": s,
-                                                                       "NWEAK": nweak}});
+        if (showImage) {
+            defs["DEBUG_SHOWIMG"] = 1;
+        }
+
+        lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": defs});
         gl.useProgram(lbpShader);
 
         uniforms = {
@@ -116,6 +185,7 @@ FaceDetector.prototype.setupShaders = function () {
             "lbpLookupTableSize": this.lbpLookupTableSize,
             "uSampler": 0,
             "lbpLookupTexture": 1,
+            "scale": 1.0,
             "activeWindows": 2
         };
 
@@ -126,7 +196,7 @@ FaceDetector.prototype.setupShaders = function () {
 
         cv.shaders.setUniforms(lbpShader, uniforms);
 
-        cv.shaders.setAttributes(lbpShader, vertexAttributes);
+        cv.shaders.setAttributes(lbpShader, {aPosition: vertBuf});
 
         shaderArray.push(lbpShader);
     }
@@ -196,56 +266,4 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
     return cv.gpu.uploadArrayToTexture(lbpMapArray, null, texWidth, texHeight,
              {filter: gl.NEAREST, format: gl.LUMINANCE,
               type: gl.UNSIGNED_BYTE, flip: false});
-}
-
-function viewAlignedRectangleAttributes(shader, w, h, params) {
-
-    params = params || {};
-    params.flip = params.flip || false;
-
-    var vertCoords,
-        vertBuf,
-        texCoords,
-        texBuf,
-        attrs;
-
-    // A simple rectangle (2 triangles)
-    vertCoords = new Float32Array([
-        0.0,   0.0,
-        w, 0.0,
-        0.0,   h,
-        0.0,   h,
-        w, 0.0,
-        w, h]);
-
-    vertBuf = cv.shaders.arrayBuffer(vertCoords);
-
-    // Set up the texture coordinates
-    if (params.flip) {
-        // Flip so texture2D Y axis origin is top left
-        texCoords = new Float32Array([
-            0.0, 1.0,
-            1.0, 1.0,
-            0.0, 0.0,
-            0.0, 0.0,
-            1.0, 1.0,
-            1.0, 0.0]);
-    } else {
-        texCoords = new Float32Array([
-            0.0, 0.0,
-            1.0, 0.0,
-            0.0, 1.0,
-            0.0, 1.0,
-            1.0, 0.0,
-            1.0, 1.0]);
-    }
-
-    texBuf = cv.shaders.arrayBuffer(texCoords);
-
-    attrs = {
-        aTextureCoord: texBuf,
-        aPosition: vertBuf
-    };
-
-    return attrs;
 }

@@ -1,4 +1,4 @@
-precision highp float;
+precision mediump float;
 uniform sampler2D uSampler;
 uniform sampler2D lbpLookupTexture;
 uniform sampler2D activeWindows;
@@ -15,31 +15,40 @@ uniform vec2 leafValues[NWEAK];
 uniform vec4 featureRectangles[NWEAK];
 uniform float stageThreshold;
 uniform vec2 lbpLookupTableSize;
+uniform float scale;
        
 void main() {
-  // to convert to pixel units
+  // to convert from pixel [0,w) to texture coordinates [0,1)
   vec2 px = vec2(1.0, 1.0) / uImageSize;
+  vec2 halfpx = 0.5 * px;
 
-  // Texture lookup coords (for integral image)
-  float posx = vTextureCoord.x;
-  float posy = vTextureCoord.y;
 
   float sumStage = 0.0;
 
   int lbp;
   float dbg = 1.0;
 
-  // Coordinates for looking up activeWindows (not flipped like integral image)
-  vec2 winpos = gl_FragCoord.xy/uImageSize;
+  vec2 pos = gl_FragCoord.xy/uImageSize;
+  float posx = pos.x;
+  float posy = pos.y;
 
-  if (STAGEN == 0 || texture2D(activeWindows, vec2(winpos.x, winpos.y)).x == 1.0) {      
+  if (STAGEN == 0 || texture2D(activeWindows, vec2(posx, posy)).x == 1.0) {      
     //const int w = 1;
     for(int w = 0; w < NWEAK; w++) {
       vec4 rect = featureRectangles[w];
-      float rx = rect.x * px.x;
-      float ry = rect.y * px.y;
-      float rw = rect.z * px.x;
-      float rh = rect.w * px.y;
+
+      #ifdef DEBUG_SHOWIMG
+      rect.x = 0.0;
+      rect.y = 0.0;
+      rect.z = 1.0;
+      rect.w = 1.0;
+      #endif
+
+      float rx = rect.x * px.x * scale;
+      float ry = rect.y * px.y * scale;
+      float rw = rect.z * px.x * scale;
+      float rh = rect.w * px.y * scale;
+
   
       // Top left quadrant
       float p0 = texture2D(uSampler, vec2(posx + rx, posy + ry)).x;  // top left point
@@ -78,13 +87,18 @@ void main() {
       float r5 = p10 - p8 - p15 + p13;
       float r6 = p15 - p13 - p14 + p12;
       float r7 = p13 - p3 - p12 + p2;
+
+      #ifdef DEBUG_SHOWIMG
+      dbg = r0;
+      break;
+      #endif
   
       lbp = (int(r0 > c) * 128) + (int(r1 > c) * 64) + (int(r2 > c) * 32) + (int(r3 > c) * 16) + (int(r4 > c) * 8) + (int(r5 > c) * 4) + (int(r6 > c) * 2) + int(r7 > c);
   
-      // x - 1.0 when dividing by sizes because interval [0.0,1.0] is inclusive, so 1.0 should be max index
+      // +0.5 to the numerator to get the pixel centre (since the texture coordinates give the bottom left of pixel)
   
-      float lookup_x = float(256 * w + lbp)/(lbpLookupTableSize.x - 1.0); //float((256 * w + lbp)) / (lbpLookupTableSize.x);
-      float lookup_y = float(STAGEN) / (lbpLookupTableSize.y - 1.0);
+      float lookup_x = (float(256 * w + lbp) + 0.5)/(lbpLookupTableSize.x); //float((256 * w + lbp)) / (lbpLookupTableSize.x);
+      float lookup_y = (float(STAGEN) + 0.5)/ (lbpLookupTableSize.y);
   
       float bit = texture2D(lbpLookupTexture, vec2(lookup_x, lookup_y)).x;
   
@@ -98,10 +112,6 @@ void main() {
   
     }
   
-    //dbg = float(texture2D(uSampler, vec2(posx, posy)).x > 10000.0);
-  
-    //gl_FragColor = vec4(dbg, 0.0, 0.0, 1.0);
-  
     float accepted = float(sumStage > stageThreshold);
   
     gl_FragColor = vec4(accepted, accepted, accepted, 1.0);
@@ -110,9 +120,15 @@ void main() {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
   }
 
-  // XXX
-  if (gl_FragCoord.x >= uImageSize.x - WINSIZE - 1.0 || gl_FragCoord.y <= WINSIZE+1.0 ) {
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-  }
+
+#ifdef DEBUG_INTEGRAL
+    dbg = float(texture2D(uSampler, vec2(posx, posy)).x > 1500000.0);
+    gl_FragColor = vec4(dbg, 0.0, 0.0, 1.0);
+#endif
+
+
+#ifdef DEBUG_SHOWIMG
+    gl_FragColor = vec4(dbg/256.0, 0.0, 0.0, 1.0);
+#endif
 
 }

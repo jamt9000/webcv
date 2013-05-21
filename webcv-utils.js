@@ -66,9 +66,14 @@
                 canvas.height = h;
                 context = canvas.getContext('2d');
                 imageData = context.createImageData(w, h);
-                imageData.data.set(array);
+                imageData.data.set(array.subarray(0,w*h*4));
                 context.putImageData(imageData, 0, 0);
-                document.body.appendChild(canvas);
+                var im = document.createElement("img");
+                im.src = canvas.toDataURL();
+                im.width = w;
+                im.height = h;
+                im.className = "webcvimage";
+                document.body.appendChild(im);
             },
 
             showGrayscale: function (data_u8, w, h) {
@@ -92,7 +97,12 @@
                 }
 
                 context.putImageData(imageData, 0, 0);
-                document.body.appendChild(canvas);
+                var im = document.createElement("img");
+                im.width = w;
+                im.height = h;
+                im.src = canvas.toDataURL();
+                im.className = "webcvimage";
+                document.body.appendChild(im);
             }
         };
     };
