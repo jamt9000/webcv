@@ -2,25 +2,27 @@ Coordinate Considerations
 =========================
 
 Working with the OpenGL ecosystem invariably requires an understanding of the 
-different coordinate systems used for the polygons, textures and viewport. This 
+different coordinate systems used for the polygon vertices, textures and screen. This 
 becomes even more important when using OpenGL for computation, as being off by one
 pixel (or a fraction of a pixel) can have much more serious consequences than
-mere graphical glitches.
-
-If a texture is used as a lookup table for arbitrary information, it is essential
+mere graphical glitches. If a texture is used as a lookup table for arbitrary information, it is essential
 that the correct values are indexed, to avoid giving, at best, completely incorrect
 results, or at worst hard-to-detect bugs due to the limitations of floating point
 precision in the 0 to 1 range used to index textures.
 
+Firstly we have the window (or screen) coordinates, which give the position in 
+the viewport, in other words the final image output. However, since the output may be
+rendered to a texture, window coordinates don't have to be related to an image
+actually displayed on the screen. They are similar to pixel positions, however OpenGL
+itself does not have a concept of a pixel until rasterisation.
 \cite{Peers2002} gives a detailed mathematical treatment of OpenGL coordinates,
-drawing from the specification. In this way, the viewport can be treated as a 
-Cartesian plane given by the gl.viewport(x,y,w,h) command (which gives the
-transform from the normalised device coordinates, used for polygon vertices,
-to window coordinates). This gives the x,y coordinates of the origin, which is at
-the bottom-left edge of the image, and determines the area of the scene which
-should be rasterised. Two important points to note here are that the Y axis is
-effectively flipped relative to the coordinate system usually used in graphics, 
-which has the origin at the top left, and that integer coordinates will index the
+drawing from the OpenGL specification. In this way, the viewport can be treated as a 
+Cartesian plane whose origin and unit vectors are given by the gl.viewport(x,y,w,h) command.
+This sets the x,y offset of the origin, which is at the bottom-left edge of the image, and determines the area
+of the scene which should be rasterised, so in a graphics sense can be considered a
+sort of cropping of the image. Two important points to note here are that the Y axis is effectively
+flipped relative to the coordinate system usually used in graphics, 
+which has the origin at the top-left, and that integer coordinates will index the
 bottom left corners of pixels, so to index the centre of a pixel requires adding
 0.5 to each dimension. For general purpose computation on a grid, modifying the viewport
 can be used to change the output range of the computation. For example, when doing
@@ -28,3 +30,31 @@ face detection at different scales, the "sliding window" of the detector will ch
 output grid should be smaller.
 
 [!Decreased output range for larger window](./facescale.png)
+
+The vertex positions of polygons are specified by setting the gl_Position variable
+in the vertex shader. This is a four dimensional (x,y,z,w) vector where x,y,z are in
+Normalised Device Coordinates, a resolution-independent coordinate system which varies
+from -1 to 1 in each dimension such that the origin is at the centre. These
+then undergo perspective division by the fourth gl_Position.w coordinate. For convenience
+we can use window coordinates when we supply the vertices as an attribute, then compute the normalised
+coordinates in the vertex shader by dividing by the image resolution. This will give a value in the range [0,1], which can be changed to the range [-1,1] by multiplying by 2 then subtracting 1. For the purposes of
+computation on a 2D grid, the only geometry we need is a rectangle aligned with the viewport,
+which we can get by drawing two triangles. We do not want any perspective division, so z,w can be
+set to 0,1. This effectively "passes through" the vertex coordinates, allowing us to use them as
+if they were window coordinates.
+
+The shader code to achieve this is: (where aPosition is the vertex position attribute and uResolution gives the image resolution)
+
+    vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;
+    gl_Position = vec4(normCoords, 0, 1);
+
+Finally, we have to deal with the coordinates of texture maps, made up of texels
+(the texture equivalent of a pixel) which are sampled using texture2D() in the
+fragment shader. They have coordinates from 0,0 in the bottom left to 1,1 in the
+top right. Textures may be sampled using different filtering methods in order to
+interpolate between the discrete texels, the simplest being "NEAREST" which
+simply uses the closest texel value, and "LINEAR" which interpolates linearly
+based on the distance to surrounding texels. To sample at precisely the texel
+centre, with no filtering, it is necessary to offset by half a texel. So for the ith
+texel in a row we would use X coordinate (i + 0.5)/width to offset then normalise
+to the [0,1) range.

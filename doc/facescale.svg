@@ -14,7 +14,10 @@
    id="svg2"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="facescale.svg">
+   sodipodi:docname="facescale.svg"
+   inkscape:export-filename="/home/james/Code/webcv/doc/facescale.png"
+   inkscape:export-xdpi="66.375"
+   inkscape:export-ydpi="66.375">
   <defs
      id="defs4">
     <marker
@@ -130,7 +133,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
