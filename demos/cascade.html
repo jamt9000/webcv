@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head>
+<title>Cascade demo</title>
+<script src="lbpcascade_frontalface.js"></script>
+<script src="cascade.js"></script>
+<script src="jquery.js"></script>
+<script>
+function imgloaded(){
+
+var rects = runCascade(document.getElementById("image1"), lbpcascade_frontalface);
+$(rects).each(function(n,e) {
+    var box = $('<div>');
+    box.css({"border": "solid 1px red",
+             "position": "absolute",
+             "left": e[0],
+             "top": e[1],
+             "width": e[2],
+             "height": e[3]});
+    $('#faceimage').append(box);
+});
+
+}
+</script>
+</head>
+<body>
+<div id="faceimage" style="position:relative">
+    <img src="scales.png" onload="imgloaded()" id="image1" style="position:relative">
+</div>
+</body>
+</html>
