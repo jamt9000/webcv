@@ -16,6 +16,9 @@ uniform vec4 featureRectangles[NWEAK];
 uniform float stageThreshold;
 uniform vec2 lbpLookupTableSize;
 uniform float scale;
+
+// round for positive numbers only
+#define round_pos(x) floor(x+0.5)
        
 void main() {
   // to convert from pixel [0,w) to texture coordinates [0,1)
@@ -44,10 +47,10 @@ void main() {
       rect.w = 1.0;
       #endif
 
-      float rx = rect.x * px.x * scale;
-      float ry = rect.y * px.y * scale;
-      float rw = rect.z * px.x * scale;
-      float rh = rect.w * px.y * scale;
+      float rx = round_pos(scale * rect.x) * px.x;
+      float ry = round_pos(scale * rect.y) * px.y;
+      float rw = round_pos(scale * rect.z) * px.x;
+      float rh = round_pos(scale * rect.w) * px.y;
 
   
       // Top left quadrant

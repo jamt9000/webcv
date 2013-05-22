@@ -72,8 +72,8 @@ FaceDetector.prototype.detect = function (image) {
 
     for (scale = 1.0; scale * this.windowSize < w && scale * this.windowSize < h; scale *= this.scaleFactor) {
         var scaledWindowSize = Math.round(scale * this.windowSize);
-        var drawWidth = this.width - scaledWindowSize;
-        var drawHeight = this.height - scaledWindowSize;
+        var drawWidth = this.integralWidth - scaledWindowSize;
+        var drawHeight = this.integralHeight - scaledWindowSize;
         var readWidth = drawWidth;
         var readHeight = drawHeight;
         if(showImage) {
