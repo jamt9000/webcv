@@ -16,10 +16,11 @@ uniform vec4 featureRectangles[NWEAK];
 uniform float stageThreshold;
 uniform vec2 lbpLookupTableSize;
 uniform float scale;
+uniform int scaleN;
 
 // round for positive numbers only
 #define round_pos(x) floor(x+0.5)
-       
+
 void main() {
   // to convert from pixel [0,w) to texture coordinates [0,1)
   vec2 px = vec2(1.0, 1.0) / uImageSize;
@@ -35,7 +36,16 @@ void main() {
   float posx = pos.x;
   float posy = pos.y;
 
-  if (STAGEN == 0 || texture2D(activeWindows, vec2(posx, posy)).x == 1.0) {      
+  bool acceptedFromPreviousStage;
+
+  #if STAGEN > 0
+  acceptedFromPreviousStage = texture2D(activeWindows, vec2(posx, posy)).x > 0.0;
+  #else
+  acceptedFromPreviousStage = true;
+  #endif
+  
+
+  if (acceptedFromPreviousStage) {      
     //const int w = 1;
     for(int w = 0; w < NWEAK; w++) {
       vec4 rect = featureRectangles[w];
@@ -116,8 +126,12 @@ void main() {
     }
   
     float accepted = float(sumStage > stageThreshold);
+
+    #ifdef SCALES_SAME_TEXTURE
+    float acceptedScale  = accepted * float(scaleN)/256.0;
+    #endif
   
-    gl_FragColor = vec4(accepted, accepted, accepted, 1.0);
+    gl_FragColor = vec4(acceptedScale, accepted, accepted, 1.0);
   
   } else {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
