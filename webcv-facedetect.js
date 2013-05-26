@@ -6,6 +6,8 @@ var FaceDetector = function (cascade, width, height) {
         throw new Error("FaceDetector must be instantiated with new");
     }
 
+    var setupStart = new Date();
+
     this.cascade = cascade;
 
     this.scaleFactor = 1.2;
@@ -26,29 +28,30 @@ var FaceDetector = function (cascade, width, height) {
     // Output textures and framebuffers for pingponging
     framebuffer1 = gl.createFramebuffer();
     framebuffer2 = gl.createFramebuffer();
+    this.framebuffers = [framebuffer1, framebuffer2];
 
     outTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-
     outTexture2 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-
     this.outTextures = [outTexture1, outTexture2];
 
+    // Attach textures to framebuffers (turns out doing this before
+    // setupShaders() makes the first draw/readPixels a lot faster)
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer1);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture1, 0);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer2);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture2, 0);
 
-    this.framebuffers = [framebuffer1, framebuffer2];
+    // Compile the code for all the shaders (one for each stage)
+    this.lbpShaders = this.setupShaders();
 
     this.finalOutput = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
 
-    this.lbpShaders = this.setupShaders();
-
     this.pixels = new Uint8Array(this.integralWidth * this.integralHeight * 4);
+    console.log("Setup time", new Date() - setupStart);
 }
 
 FaceDetector.prototype.detect = function (image) {
@@ -73,11 +76,6 @@ FaceDetector.prototype.detect = function (image) {
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.lbpLookupTexture);
-
-
-
-
-    var outTextures = [this.outTexture1, this.outTexture2];
 
     var nstages = cascade.stages.length;
 
@@ -119,7 +117,6 @@ FaceDetector.prototype.detect = function (image) {
             gl.activeTexture(gl.TEXTURE2);
             gl.bindTexture(gl.TEXTURE_2D, activeWindowTexture);
 
-
             gl.clearColor(0,1,0,1);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -140,7 +137,9 @@ FaceDetector.prototype.detect = function (image) {
         }
 
 
+            var readStart = new Date();
             gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+            var readTime = new Date() - readStart;
             cv.utils.showRGBA(this.pixels, iw, ih);
 
         if (!scalesSameTexture) {
@@ -157,7 +156,7 @@ FaceDetector.prototype.detect = function (image) {
                 }
             }
         }
-        console.log("Scale", scale, "time", new Date() - scaleTime);
+        console.log("Scale", scale, "time", new Date() - scaleTime, "readPixels time", readTime);
 
 
         scaleN += 1;

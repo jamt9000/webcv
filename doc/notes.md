@@ -209,6 +209,22 @@ factor, once the detection gets going we need not worry about reads taking over
 minimise the number of readPixels calls needed, ideally with just one at the
 end of detection rather than intermediate calls for each scale.
 
+While refactoring the code to "pingpong" by flipping between multiple
+framebuffers, rather than the more expensive technique of using one framebuffer
+and attaching different textures in turn (as recommended by @Tavares2011a at
+37m20s), it was discovered that the slowdown on the first readPixels seemed to
+disappear. However, after some work to narrow down the exact conditions which
+would produce the slowdown, it was determined that this optimisation alone was
+not responsible for the difference, but rather that it was determined by the
+ordering of the calls to attach textures to the framebuffers, relative to the
+code setting up the shaders. It turned out that, if at least one
+`gl.framebufferTexture2D` call was before the shader setup, the initial
+readPixels call took 12ms, whereas otherwise it took 560ms. The initial setup
+which includes compiling the shaders takes around a second, so while the order
+of calls does not change the initial setup time, it allows the "warm up" time
+required before readPixels to effectively be hidden behind the time needed to
+compile the shaders.
+
 
 
 Bibliography
