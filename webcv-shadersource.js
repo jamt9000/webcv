@@ -340,6 +340,8 @@ WebCV.SHADERSOURCE = {
             "", 
             "    #ifdef SCALES_SAME_TEXTURE", 
             "    float acceptedScale  = accepted * float(scaleN)/256.0;", 
+            "    #else", 
+            "    float acceptedScale = accepted;", 
             "    #endif", 
             "", 
             "    gl_FragColor = vec4(acceptedScale, accepted, accepted, 1.0);", 
