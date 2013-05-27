@@ -58,7 +58,7 @@ $(document).ready(function () {
                 $('#faceimage').append(box);
             });
         }
-        if (iteration < niterations){
+        if (iteration < niterations-1){
             img.get(0).src = "./scales" + (flipped ? "" : "flip") + ".png";
             flipped = !flipped;
             iteration += 1;

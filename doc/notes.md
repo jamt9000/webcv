@@ -219,12 +219,40 @@ not responsible for the difference, but rather that it was determined by the
 ordering of the calls to attach textures to the framebuffers, relative to the
 code setting up the shaders. It turned out that, if at least one
 `gl.framebufferTexture2D` call was before the shader setup, the initial
-readPixels call took 12ms, whereas otherwise it took 560ms. The initial setup
-which includes compiling the shaders takes around a second, so while the order
+readPixels call took 10ms, whereas otherwise it took over 200ms. The initial setup
+which includes compiling the shaders always takes around half a second, so while the order
 of calls does not change the initial setup time, it allows the "warm up" time
 required before readPixels to effectively be hidden behind the time needed to
-compile the shaders.
+compile the shaders. This is likely because the shader compilation is mostly
+CPU-bound, allowing other tasks to be done in parallel on the GPU.
 
+In order to eliminate the intermediate readPixel calls, we need to write the
+output from each scale to the same texture, preserving the pixels output from
+the previous scale, and encoding the scale in the pixel value. To indicate the
+scale of an accepted window we can simply write out the ordinal number
+(1,2,3...) of the scale as a colour value, or 0 if the window is rejected. The
+size to multiply the rectangle by is then $scaleFactor^{(scaleNumber-1)}$. The
+use of two textures to "pingpong" the results between each stage in a scale
+remains as before, except that on the final stage we write to a shared final
+output texture. One limitation is that, if we have two detections of different
+scales at exactly the same position, the later (larger) scale will overwrite
+the previous one. However, this should be a relatively rare occurence, and
+should not make too much difference when all the rectangles are grouped to find
+the final face positions. Another complication is that we want to keep the
+previous written pixels, instead of writing a black pixel for a rejected window
+in a subsequent scale. The simplest way to prevent output of any pixel at all
+is to use the `discard;` statement in the fragment shader. However, in certain
+cases (discussed in @discardperf) this may invoke a performance penalty,
+particularly on mobile GPUs. An alternative is to use OpenGL's blend modes,
+which specify how pixels written should be blended with the pixels already
+present.
+
+![Writing out pixels for each scale. A lighter colour pixel indicates a larger
+detection](./scalessametexture.png)
+
+An implementation was created using `discard;`, giving an average time of 71ms
+per detection run (for a 320x240 image over 20 runs), compared to 110ms using
+`readPixels` for each scale under equivalent conditions.
 
 
 Bibliography

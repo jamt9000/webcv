@@ -1,5 +1,5 @@
 var showImage = false;
-var scalesSameTexture = false;
+var scalesSameTexture = true;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -26,15 +26,19 @@ var FaceDetector = function (cascade, width, height) {
     this.lbpLookupTexture = this.createLBPLookupTexture();
 
     // Output textures and framebuffers for pingponging
-    framebuffer1 = gl.createFramebuffer();
-    framebuffer2 = gl.createFramebuffer();
+    var framebuffer1 = gl.createFramebuffer();
+    var framebuffer2 = gl.createFramebuffer();
+    this.finalFramebuffer = gl.createFramebuffer();
     this.framebuffers = [framebuffer1, framebuffer2];
 
-    outTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+    var outTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-    outTexture2 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+    var outTexture2 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
+    this.finalTexture = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
     this.outTextures = [outTexture1, outTexture2];
+
 
     // Attach textures to framebuffers (turns out doing this before
     // setupShaders() makes the first draw/readPixels a lot faster)
@@ -44,11 +48,13 @@ var FaceDetector = function (cascade, width, height) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer2);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture2, 0);
 
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
+            gl.TEXTURE_2D, this.finalTexture, 0);
+
+
     // Compile the code for all the shaders (one for each stage)
     this.lbpShaders = this.setupShaders();
-
-    this.finalOutput = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
-                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
 
     this.pixels = new Uint8Array(this.integralWidth * this.integralHeight * 4);
     console.log("Setup time", new Date() - setupStart);
@@ -93,6 +99,11 @@ FaceDetector.prototype.detect = function (image) {
     // value when a rectangle is detected at a certain scale
     var scaleN = 1;
 
+    // Clear final output framebuffer
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
+    gl.clearColor(0,0,0,1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
     for (scale = 1.0; scale * this.windowSize < w && scale * this.windowSize < h; scale *= this.scaleFactor) {
         var scaleTime = new Date();
         var scaledWindowSize = Math.round(scale * this.windowSize);
@@ -117,13 +128,20 @@ FaceDetector.prototype.detect = function (image) {
             gl.bindFramebuffer(gl.FRAMEBUFFER, outFramebuffer);
             var activeWindowTexture = this.outTextures[(stageN + 1) % 2];
 
+            gl.clearColor(0,1,0,1);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+
+            if(scalesSameTexture && stageN == nstages-1) {
+                // On last stage render to final out texture
+                gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
+            }
+
+
             // Bind the texture of windows still active (potentially faces) to
             // texture unit 2
             gl.activeTexture(gl.TEXTURE2);
             gl.bindTexture(gl.TEXTURE_2D, activeWindowTexture);
 
-            gl.clearColor(0,1,0,1);
-            gl.clear(gl.COLOR_BUFFER_BIT);
 
             gl.useProgram(this.lbpShaders[stageN]);
             cv.shaders.setUniforms(this.lbpShaders[stageN], {"scale": scale, "scaleN": scaleN});
@@ -142,8 +160,6 @@ FaceDetector.prototype.detect = function (image) {
         }
 
 
-            //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-            //cv.utils.showRGBA(this.pixels, iw, ih);
 
         if (!scalesSameTexture) {
             var readStart = new Date();
@@ -160,6 +176,10 @@ FaceDetector.prototype.detect = function (image) {
                     rectangles.push([x, y, scaledWindowSize, scaledWindowSize]);
                 }
             }
+        } else {
+            //gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+            //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+            //cv.utils.showRGBA(this.pixels, iw, ih);
         }
         console.log("Scale", scale, "time", new Date() - scaleTime, "readPixels time", readTime);
 
@@ -176,10 +196,10 @@ FaceDetector.prototype.detect = function (image) {
             // Scale number stored as pixel value
             pixelValue = this.pixels[k * 4];
             if (pixelValue != 0) {
-                scaleBy = Math.pow(this.scaleFactor, pixelValue);
+                scaleBy = Math.pow(this.scaleFactor, pixelValue-1);
                 x = (k) % iw;
                 y = Math.floor((k) / iw);
-                rectangles.push([x, y, windowSize * scaleBy, windowSize * scaleBy]);
+                rectangles.push([x, y, this.windowSize * scaleBy, this.windowSize * scaleBy]);
             }
         }
     }

@@ -129,6 +129,9 @@ void main() {
 
     #ifdef SCALES_SAME_TEXTURE
     float acceptedScale  = accepted * float(scaleN)/256.0;
+    if (STAGEN == 19 && accepted == 0.0) {
+        discard;
+    }
     #else
     float acceptedScale = accepted;
     #endif
@@ -136,6 +139,12 @@ void main() {
     gl_FragColor = vec4(acceptedScale, accepted, accepted, 1.0);
   
   } else {
+    #ifdef SCALES_SAME_TEXTURE
+    if (STAGEN == 19) {
+        discard;
+    }
+    #endif
+
     gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
   }
 
