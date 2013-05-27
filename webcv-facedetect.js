@@ -1,5 +1,5 @@
 var showImage = false;
-var scalesSameTexture = true;
+var scalesSameTexture = false;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -61,6 +61,10 @@ FaceDetector.prototype.detect = function (image) {
         ih = this.integralHeight,
         cascade = this.cascade;
 
+    if (window.times === undefined) {
+        window.times = [];
+    }
+
     // Convert to grayscale
     var grey = cv.imgproc.imageToGreyArray(image);
 
@@ -83,6 +87,7 @@ FaceDetector.prototype.detect = function (image) {
     var rectangles = []
 
     var ndraws = 0;
+    var readTime = 0.0;
 
     // Ordinal number of the scale, which will be written as the output pixel
     // value when a rectangle is detected at a certain scale
@@ -137,13 +142,13 @@ FaceDetector.prototype.detect = function (image) {
         }
 
 
-            var readStart = new Date();
-            gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-            var readTime = new Date() - readStart;
-            cv.utils.showRGBA(this.pixels, iw, ih);
+            //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+            //cv.utils.showRGBA(this.pixels, iw, ih);
 
         if (!scalesSameTexture) {
+            var readStart = new Date();
             gl.readPixels(0, 0, readWidth, readHeight, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+            readTime = new Date() - readStart;
             cv.utils.showRGBA(this.pixels, readWidth, readHeight);
 
             // Gather the rectangles from the image
@@ -180,7 +185,9 @@ FaceDetector.prototype.detect = function (image) {
     }
 
     console.log("number of draw calls:", ndraws);
-    console.log("Overall time:", new Date() - timeStart);
+    var overallTime = new Date() - timeStart;
+    console.log("Overall time:", overallTime);
+    window.times.push(overallTime);
     return rectangles;
 }
 

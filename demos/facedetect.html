@@ -32,14 +32,21 @@ $(document).ready(function () {
 
     var img = $('<img src="scales.png" />');
     window.img = img;
+    
+    var flipped = false;
+    window.fd = undefined;
+    var niterations = 10;
+    var iteration = 0;
 
     $(img).load(function () {
-        // Do stuff with image
-        fd = new FaceDetector(lbpcascade_frontalface, img.width(), img.height());
+        if (!fd) { 
+            fd = new FaceDetector(lbpcascade_frontalface, img.width(), img.height());
+        }
         window.fd = fd;
         window.rects = fd.detect(img.get(0));
 
         if (!showImage) {
+            $('#faceimage div').remove()
             $(window.rects).each(function(n,e) {
                 var box = $('<div>');
                 box.css({"border": "solid 1px red",
@@ -51,7 +58,19 @@ $(document).ready(function () {
                 $('#faceimage').append(box);
             });
         }
-    //img.get(0).src = "./scalesflip.png";
+        if (iteration < niterations){
+            img.get(0).src = "./scales" + (flipped ? "" : "flip") + ".png";
+            flipped = !flipped;
+            iteration += 1;
+        } else {
+            var sum = 0;
+            for(var i=0;i<window.times.length;i++) {
+                sum += window.times[i];
+            }
+            var av = sum/window.times.length;
+            console.log("Av over all iterations:", av);
+
+        }
     });
 
     $('body #faceimage').append(img);
