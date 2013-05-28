@@ -1,5 +1,6 @@
 var showImage = false;
 var scalesSameTexture = true;
+var blendScales = true;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -7,6 +8,10 @@ var FaceDetector = function (cascade, width, height) {
     }
 
     var setupStart = new Date();
+
+    if (blendScales) {
+        gl.enable(gl.BLEND);
+    }
 
     this.cascade = cascade;
 
@@ -69,6 +74,10 @@ FaceDetector.prototype.detect = function (image) {
 
     if (window.times === undefined) {
         window.times = [];
+    }
+
+    if (blendScales) {
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     }
 
     // Convert to grayscale
@@ -251,6 +260,10 @@ FaceDetector.prototype.setupShaders = function () {
 
         if (scalesSameTexture) {
             defs["SCALES_SAME_TEXTURE"] = 1;
+        }
+
+        if (blendScales) {
+            defs["BLEND_SCALES"] = 1;
         }
 
         lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": defs});

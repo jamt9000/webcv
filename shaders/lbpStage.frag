@@ -43,7 +43,8 @@ void main() {
   #else
   acceptedFromPreviousStage = true;
   #endif
-  
+
+  float alpha = 1.0;
 
   if (acceptedFromPreviousStage) {      
     //const int w = 1;
@@ -129,23 +130,33 @@ void main() {
 
     #ifdef SCALES_SAME_TEXTURE
     float acceptedScale  = accepted * float(scaleN)/256.0;
-    if (STAGEN == 19 && accepted == 0.0) {
-        discard;
-    }
+        #ifdef BLEND_SCALES
+        alpha = accepted;
+        #else
+        if (STAGEN == 19 && accepted == 0.0) {
+            discard;
+        }
+        #endif
     #else
     float acceptedScale = accepted;
     #endif
   
-    gl_FragColor = vec4(acceptedScale, accepted, accepted, 1.0);
+    gl_FragColor = vec4(acceptedScale, accepted, accepted, alpha);
   
   } else {
     #ifdef SCALES_SAME_TEXTURE
+    #ifndef BLEND_SCALES
     if (STAGEN == 19) {
         discard;
     }
     #endif
+    #endif
 
-    gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    #ifdef BLEND_SCALES
+    alpha = 0.0;
+    #endif
+
+    gl_FragColor = vec4(0.0, 0.0, 0.0, alpha);
   }
 
 
