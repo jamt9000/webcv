@@ -250,9 +250,30 @@ present.
 ![Writing out pixels for each scale. A lighter colour pixel indicates a larger
 detection](./scalessametexture.png)
 
-An implementation was created using `discard;`, giving an average time of 71ms
+First an implementation was created using `discard;`, giving an average time of 71ms
 per detection run (for a 320x240 image over 20 runs), compared to 110ms using
-`readPixels` for each scale under equivalent conditions.
+`readPixels` for each scale under equivalent conditions. 
+
+The implementation was then adapted to use blending, in order to test which
+would give the best performance. As explained in @Thomas8, the
+`gl.blendFunc(sfactor, dfactor)` function sets the factors which the source
+(being drawn) and destination (already in the framebuffer) should be multiplied
+by, where `sfactor` and `dfactor` are symbolic constants determining where the
+factors should come from. The output for each colour channel is given by
+$Result = SourceVal \times SourceFactor + DestVal \times DestFactor$. We set
+`sfactor` to `SRC_ALPHA` and `dfactor` to `ONE_MINUS_SRC_ALPHA`, which means that
+when outputting `gl_FragColor` we can set the alpha value to 0.0 to completely
+preserve the existing pixel.
+
+Comparing the timing of the two techniques over 100 iterations, there turned
+out to be almost no difference in the mean time, at least on a laptop Intel
+GPU, although as shown in the box plot the Blend version had a slightly greater
+variance. In the end the Blend version was preferred, to avoid potential
+slowness with other GPUs and because it allowed the shader code to be
+simplified, eliminating a branching condition to explicitly check if the window
+was rejected.
+
+![Box plot of timings using Discard vs Blend, for 100 iterations](./blend-vs-discard.png)
 
 
 Bibliography
