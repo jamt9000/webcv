@@ -1,6 +1,4 @@
 var showImage = false;
-var scalesSameTexture = true;
-var blendScales = true;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -8,10 +6,6 @@ var FaceDetector = function (cascade, width, height) {
     }
 
     var setupStart = new Date();
-
-    if (blendScales) {
-        gl.enable(gl.BLEND);
-    }
 
     this.cascade = cascade;
 
@@ -61,6 +55,11 @@ var FaceDetector = function (cascade, width, height) {
     // Compile the code for all the shaders (one for each stage)
     this.lbpShaders = this.setupShaders();
 
+    this.integral = new Float32Array(this.integralWidth * this.integralHeight);
+    this.integralTexture = cv.gpu.blankTexture(this.integralWidth,
+            this.integralHeight, {format: gl.LUMINANCE, filter: gl.NEAREST,
+                type: gl.FLOAT, flip: false});
+
     this.pixels = new Uint8Array(this.integralWidth * this.integralHeight * 4);
     console.log("Setup time", new Date() - setupStart);
 }
@@ -76,22 +75,19 @@ FaceDetector.prototype.detect = function (image) {
         window.times = [];
     }
 
-    if (blendScales) {
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    }
 
     // Convert to grayscale
     var grey = cv.imgproc.imageToGreyArray(image);
 
     // Create and upload integral image
-    var integral = new Float32Array(iw * ih);
-    cv.imgproc.integralImage(grey, this.width, this.height, integral);
-    var integralTexture = cv.gpu.uploadArrayToTexture(integral, null, iw, ih, 
-                       {format: gl.LUMINANCE, filter: gl.NEAREST, type: gl.FLOAT, flip: false});
+    cv.imgproc.integralImage(grey, this.width, this.height, this.integral);
+    gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, iw, ih, 0, gl.LUMINANCE,
+            gl.FLOAT, this.integral);
 
     // Bind textures for the integral image and LBP lookup table
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, integralTexture);
+    gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
 
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.lbpLookupTexture);
@@ -107,6 +103,8 @@ FaceDetector.prototype.detect = function (image) {
     // Ordinal number of the scale, which will be written as the output pixel
     // value when a rectangle is detected at a certain scale
     var scaleN = 1;
+
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
     // Clear final output framebuffer
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
@@ -126,6 +124,7 @@ FaceDetector.prototype.detect = function (image) {
         }
 
         gl.viewport(0, 0, drawWidth, drawHeight);
+        gl.disable(gl.BLEND);
 
         for (stageN = 0; stageN < nstages; stageN += 1) {
             var drawTime = new Date();
@@ -140,9 +139,10 @@ FaceDetector.prototype.detect = function (image) {
             gl.clearColor(0,1,0,1);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
-            if(scalesSameTexture && stageN == nstages-1) {
+            if(stageN == nstages-1) {
                 // On last stage render to final out texture
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
+                gl.enable(gl.BLEND);
             }
 
 
@@ -164,52 +164,28 @@ FaceDetector.prototype.detect = function (image) {
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             ndraws += 1;
 
-            //console.log("Stage", stageN, "Scale", scale, "time", new Date() - drawTime);
-
         }
 
-
-
-        if (!scalesSameTexture) {
-            var readStart = new Date();
-            gl.readPixels(0, 0, readWidth, readHeight, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-            readTime = new Date() - readStart;
-            cv.utils.showRGBA(this.pixels, readWidth, readHeight);
-
-            // Gather the rectangles from the image
-            var k, x, y;
-            for (k = 0; k < drawWidth * drawHeight; k += 1) {
-                if (this.pixels[k * 4] == 255) {
-                    x = (k) % drawWidth;
-                    y = Math.floor((k) / drawWidth);
-                    rectangles.push([x, y, scaledWindowSize, scaledWindowSize]);
-                }
-            }
-        } else {
-            //gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-            //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-            //cv.utils.showRGBA(this.pixels, iw, ih);
-        }
+        //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+        //cv.utils.showRGBA(this.pixels, iw, ih);
         console.log("Scale", scale, "time", new Date() - scaleTime, "readPixels time", readTime);
 
 
         scaleN += 1;
     }
 
-    if (scalesSameTexture) {
-        gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-        cv.utils.showRGBA(this.pixels, iw, ih);
-        // Gather the rectangles from the image
-        var k, x, y, pixelValue, scaleBy;
-        for (k = 0; k < iw * ih; k += 1) {
-            // Scale number stored as pixel value
-            pixelValue = this.pixels[k * 4];
-            if (pixelValue != 0) {
-                scaleBy = Math.pow(this.scaleFactor, pixelValue-1);
-                x = (k) % iw;
-                y = Math.floor((k) / iw);
-                rectangles.push([x, y, this.windowSize * scaleBy, this.windowSize * scaleBy]);
-            }
+    // Gather the rectangles from the image
+    gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    //cv.utils.showRGBA(this.pixels, iw, ih);
+    var k, x, y, pixelValue, scaleBy;
+    for (k = 0; k < iw * ih; k += 1) {
+        // Scale number stored as pixel value
+        pixelValue = this.pixels[k * 4];
+        if (pixelValue != 0) {
+            scaleBy = Math.pow(this.scaleFactor, pixelValue-1);
+            x = (k) % iw;
+            y = Math.floor((k) / iw);
+            rectangles.push([x, y, this.windowSize * scaleBy, this.windowSize * scaleBy]);
         }
     }
 
@@ -256,14 +232,6 @@ FaceDetector.prototype.setupShaders = function () {
 
         if (showImage) {
             defs["DEBUG_SHOWIMG"] = 1;
-        }
-
-        if (scalesSameTexture) {
-            defs["SCALES_SAME_TEXTURE"] = 1;
-        }
-
-        if (blendScales) {
-            defs["BLEND_SCALES"] = 1;
         }
 
         lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": defs});
