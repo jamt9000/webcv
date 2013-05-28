@@ -37,10 +37,13 @@
             try {
                 this.gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
             } catch (e) {
-                console.log("WebGL not available");
+                alert("WebGL not available");
             }
             // XXX should only use if needed
-            this.gl.getExtension('OES_texture_float');
+            this.texture_float = this.gl.getExtension('OES_texture_float');
+            if (this.texture_float == null) {
+                alert("No support for float texture. Supported extensions:" + this.gl.getSupportedExtensions());
+            }
         },
 
         /**
