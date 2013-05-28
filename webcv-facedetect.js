@@ -116,12 +116,6 @@ FaceDetector.prototype.detect = function (image) {
         var scaledWindowSize = Math.round(scale * this.windowSize);
         var drawWidth = this.integralWidth - scaledWindowSize;
         var drawHeight = this.integralHeight - scaledWindowSize;
-        var readWidth = drawWidth;
-        var readHeight = drawHeight;
-        if(showImage) {
-            readWidth = iw;
-            readHeight = ih;
-        }
 
         gl.viewport(0, 0, drawWidth, drawHeight);
         gl.disable(gl.BLEND);
@@ -163,13 +157,11 @@ FaceDetector.prototype.detect = function (image) {
 
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             ndraws += 1;
-
         }
 
         //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
         //cv.utils.showRGBA(this.pixels, iw, ih);
         console.log("Scale", scale, "time", new Date() - scaleTime, "readPixels time", readTime);
-
 
         scaleN += 1;
     }
