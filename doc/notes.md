@@ -275,6 +275,51 @@ was rejected.
 
 ![Box plot of timings using Discard vs Blend, for 100 iterations](./blend-vs-discard.png)
 
+<!--commit cce857eb3ef56be9aaf6d2df1e1cfe6665c74b9a -->
+
+Optimisation Techniques
+=======================
+
+The Perils of Branching
+----------------------
+
+Branching within the shader, while possible through the use of if-else
+statements, carries with it numerous caveats, explained in @HarrisBuck. In the
+"olden days" (say, 2003) in order to emulate branching, GPUs would simply
+evaluate both sides of the condition, then determine which result to use before
+writing the output. This meant that the time would be proportional to the
+cumulative cost of both branches.
+
+Things got better with the SIMD (Single Instruction, Multiple Data) model,
+which uses multiprocessors executing the same instruction on many data elements
+at once. In this case, the GPU will not be doing useless work evaluating both
+sides of the condition, but instead divergent branches will cause a stall,
+where the processors that do not take a branch have to wait for the branching
+processors to catch up. In the worst case this will still take as long as both
+branches combined, but in the case where all processors take the same branch
+(known as coherency) it will be more efficient, and since the allocation of
+fragments to processors is often done in a spacially localised manner, it
+allows for speedups when fragments in the same area of an image branch in the
+same way.
+
+Finally, true dynamic branching may be available in the form of MIMD (Multiple
+Instructions, Multiple Data) where different processors may execute different
+instructions simultaneously. Most modern GPUs support dynamic branching to some
+extent (NVIDIA's GeForce 6 series, released in 2005, introduced MIMD branching
+in the fragment shader) however at an architectural level branching still
+presents a barrier to efficient parallel computation, since knowing that all
+fragments will follow the same instructions gives the GPU opportunities for
+optimisation.
+
+For this reason, branching in the shader should be kept to a minimum, and it is
+preferred for algorithms to be structured such that fragments in the same
+neighbourhood take the same branches in order to maximise coherency. Especially
+in the case of WebGL, the programmer has no control over what graphics card
+capability the user will have, and is unable to query information about the
+graphics card due to security restrictions, so it is best to program for the
+lowest common denominator.
+
+TODO: Z-Culling
 
 Bibliography
 ===========
