@@ -1,4 +1,5 @@
 var showImage = false;
+var timeStage = false;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -64,6 +65,7 @@ var FaceDetector = function (cascade, width, height) {
     console.log("Setup time", new Date() - setupStart);
 }
 
+
 FaceDetector.prototype.detect = function (image) {
     var w = this.width,
         h = this.height,
@@ -94,6 +96,8 @@ FaceDetector.prototype.detect = function (image) {
 
     var nstages = cascade.stages.length;
 
+    this.stageTimes = new Float32Array(nstages);
+
     var timeStart = new Date();
     var rectangles = []
 
@@ -121,7 +125,6 @@ FaceDetector.prototype.detect = function (image) {
         gl.disable(gl.BLEND);
 
         for (stageN = 0; stageN < nstages; stageN += 1) {
-            var drawTime = new Date();
 
             // Render to the framebuffer holding one texture, while using the
             // other texture, containing windows still active from the previous
@@ -154,14 +157,24 @@ FaceDetector.prototype.detect = function (image) {
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
                 break;
             }
-
+            
+            var drawStart = new Date();
             gl.drawArrays(gl.TRIANGLES, 0, 6);
             ndraws += 1;
+
+            if(timeStage) {
+                // Dummy readPixels to wait until gpu finishes
+                gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+                var drawTime = new Date() - drawStart;
+                drawTime = drawTime == 0 ? 0.2 : drawTime;
+                console.log("Draw stage ", stageN, "scale", scaleN, ":", drawTime);
+                this.stageTimes[stageN] += drawTime;
+            }
         }
 
         //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
         //cv.utils.showRGBA(this.pixels, iw, ih);
-        console.log("Scale", scale, "time", new Date() - scaleTime, "readPixels time", readTime);
+        //console.log("Scale", scale, "time", new Date() - scaleTime, "readPixels time", readTime);
 
         scaleN += 1;
     }
@@ -181,6 +194,10 @@ FaceDetector.prototype.detect = function (image) {
         }
     }
 
+    if(timeStage) {
+        console.log("stageTimes", this.stageTimes);
+    }
+
     console.log("number of draw calls:", ndraws);
     var overallTime = new Date() - timeStart;
     console.log("Overall time:", overallTime);
@@ -188,7 +205,7 @@ FaceDetector.prototype.detect = function (image) {
     return rectangles;
 }
 
-FaceDetector.prototype.setupShaders = function () {
+FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstagesTest) {
     var shaderArray = [],
         cascade = this.cascade,
         w = this.width,
@@ -197,12 +214,19 @@ FaceDetector.prototype.setupShaders = function () {
         ih = this.integralHeight,
         vertexAttributes,
         lbpShader,
-        nstages = cascade.stages.length,
+        nstages = nstagesTest || cascade.stages.length,
         nweak,
         s,
         k,
         stage,
         uniforms;
+
+    if (vertexShader === undefined) {
+        vertexShader = "lbpStage";
+    }
+    if (fragShader === undefined) {
+        fragShader = "lbpStage";
+    }
 
     // A simple rectangle (2 triangles)
     var vertCoords = new Float32Array([
@@ -226,7 +250,7 @@ FaceDetector.prototype.setupShaders = function () {
             defs["DEBUG_SHOWIMG"] = 1;
         }
 
-        lbpShader = cv.shaders.getNamedShader("lbpStage", {"defines": defs});
+        lbpShader = cv.shaders.getNamedShader(vertexShader, fragShader, {"defines": defs});
         gl.useProgram(lbpShader);
 
         uniforms = {
@@ -319,4 +343,25 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
     return cv.gpu.uploadArrayToTexture(lbpMapArray, null, texWidth, texHeight,
              {filter: gl.NEAREST, format: gl.LUMINANCE,
               type: gl.UNSIGNED_BYTE, flip: false});
+}
+
+FaceDetector.prototype.benchmark16Lookups = function (niters) {
+    niters = niters || 20;
+    var shaders = this.setupShaders("draw2d", "benchmark16Lookups", 1);
+    gl.useProgram(shaders[0]);
+
+    // Bind textures for the integral image and LBP lookup table
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
+    gl.viewport(0, 0, this.integralWidth, this.integralHeight);
+    var start = new Date();
+    for(var i=0; i<niters; i++) {
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    }
+    var time = new Date() - start;
+    gl.readPixels(0, 0, this.integralWidth, this.integralHeight, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    cv.utils.showRGBA(this.pixels, this.integralWidth, this.integralHeight);
+    return time/niters;
+
 }
