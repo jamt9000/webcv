@@ -29,13 +29,16 @@ $(document).ready(function () {
         alert("WebGL not supported");
     }
     window.gl = cv.gl;
+    var filename = "scales";
 
-    var img = $('<img src="scales.png" />');
+    var img = $('<img src="' + filename + '.png" />');
+    //img.attr('width', 160);
+    //img.attr('height', 120);
     window.img = img;
     
     var flipped = false;
     window.fd = undefined;
-    var niterations = 10;
+    var niterations = 20;
     var iteration = 0;
 
     $(img).load(function () {
@@ -59,7 +62,7 @@ $(document).ready(function () {
             });
         }
         if (iteration < niterations-1){
-            img.get(0).src = "./scales" + (flipped ? "" : "flip") + ".png";
+            img.get(0).src = filename + (flipped ? "" : "flip") + ".png";
             flipped = !flipped;
             iteration += 1;
         } else {
