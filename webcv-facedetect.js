@@ -21,6 +21,29 @@ var FaceDetector = function (cascade, width, height) {
     this.integralWidth = width + 1;
     this.integralHeight = height + 1;
 
+    // Determine number of stages and scales for cascade
+    this.nstages = cascade.stages.length;
+    this.nscales = 0;
+
+    for (var scale = 1.0;
+            (scale * this.windowSize < this.width) && 
+            (scale * this.windowSize < this.height);
+            scale *= this.scaleFactor) {
+                this.nscales += 1;
+            }
+
+    // Array to time stages and scales
+    // Width: nscales, Height: nstages
+    this.stageTimes = [];
+    for(var i=0; i<this.nstages; i++) {
+        var a = [];
+        for(var j=0; j<this.nscales; j++) {
+            a.push(0);
+        }
+        this.stageTimes.push(a);
+    }
+
+
     this.lbpLookupTableSize = this.calculateLBPLookupTableSize();
 
     this.lbpLookupTexture = this.createLBPLookupTexture();
@@ -63,6 +86,7 @@ var FaceDetector = function (cascade, width, height) {
 
     this.pixels = new Uint8Array(this.integralWidth * this.integralHeight * 4);
     console.log("Setup time", new Date() - setupStart);
+
 }
 
 
@@ -94,15 +118,11 @@ FaceDetector.prototype.detect = function (image) {
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, this.lbpLookupTexture);
 
-    var nstages = cascade.stages.length;
-
-    this.stageTimes = new Float32Array(nstages);
 
     var timeStart = new Date();
     var rectangles = []
 
     var ndraws = 0;
-    var readTime = 0.0;
 
     // Ordinal number of the scale, which will be written as the output pixel
     // value when a rectangle is detected at a certain scale
@@ -115,7 +135,9 @@ FaceDetector.prototype.detect = function (image) {
     gl.clearColor(0,0,0,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    for (scale = 1.0; scale * this.windowSize < w && scale * this.windowSize < h; scale *= this.scaleFactor) {
+    var scale = 1.0;
+
+    for (var s=0; s<this.nscales; s++) {
         var scaleTime = new Date();
         var scaledWindowSize = Math.round(scale * this.windowSize);
         var drawWidth = this.integralWidth - scaledWindowSize;
@@ -124,7 +146,7 @@ FaceDetector.prototype.detect = function (image) {
         gl.viewport(0, 0, drawWidth, drawHeight);
         gl.disable(gl.BLEND);
 
-        for (stageN = 0; stageN < nstages; stageN += 1) {
+        for (stageN = 0; stageN < this.nstages; stageN += 1) {
 
             // Render to the framebuffer holding one texture, while using the
             // other texture, containing windows still active from the previous
@@ -136,7 +158,7 @@ FaceDetector.prototype.detect = function (image) {
             gl.clearColor(0,1,0,1);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
-            if(stageN == nstages-1) {
+            if(stageN == this.nstages-1) {
                 // On last stage render to final out texture
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
                 gl.enable(gl.BLEND);
@@ -158,24 +180,30 @@ FaceDetector.prototype.detect = function (image) {
                 break;
             }
             
-            var drawStart = new Date();
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
-            ndraws += 1;
 
             if(timeStage) {
-                // Dummy readPixels to wait until gpu finishes
-                gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+                // Do the draw many times and take average
+                var niters = 10;
+                var drawStart = new Date();
+                for(var n=0; n<niters; n++) {
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    ndraws += 1;
+                    // Dummy readPixels to wait until gpu finishes
+                    gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+                }
                 var drawTime = new Date() - drawStart;
-                drawTime = drawTime == 0 ? 0.2 : drawTime;
-                console.log("Draw stage ", stageN, "scale", scaleN, ":", drawTime);
-                this.stageTimes[stageN] += drawTime;
+                drawTime /= niters;
+                this.stageTimes[stageN][s] = drawTime;
+            } else {
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                ndraws += 1;
             }
         }
 
         //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
         //cv.utils.showRGBA(this.pixels, iw, ih);
-        //console.log("Scale", scale, "time", new Date() - scaleTime, "readPixels time", readTime);
 
+        scale *= this.scaleFactor;
         scaleN += 1;
     }
 
@@ -214,7 +242,7 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
         ih = this.integralHeight,
         vertexAttributes,
         lbpShader,
-        nstages = nstagesTest || cascade.stages.length,
+        nstages = nstagesTest || this.nstages, 
         nweak,
         s,
         k,
@@ -263,6 +291,7 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
             "uSampler": 0,
             "lbpLookupTexture": 1,
             "scale": 1.0,
+            "scaleN": 1,
             "activeWindows": 2
         };
 
@@ -284,7 +313,6 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
 FaceDetector.prototype.calculateLBPLookupTableSize = function() {
     var cascade = this.cascade,
         stages = cascade.stages,
-        nstages = stages.length,
         maxWeakClassifiers = 0,
         nweak,
         k,
@@ -299,7 +327,7 @@ FaceDetector.prototype.calculateLBPLookupTableSize = function() {
     }
 
     texWidth = maxWeakClassifiers * lbpArrangements;
-    texHeight = nstages;
+    texHeight = this.nstages;
 
     return [texWidth, texHeight];
 }
@@ -316,7 +344,6 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
     var maxWeakClassifiers = 0,
         cascade = this.cascade,
         stages = cascade.stages,
-        nstages = stages.length,
         lbpArrangements = 256,
         dim = this.lbpLookupTableSize,
         texWidth = dim[0],
@@ -330,7 +357,7 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
 
     lbpMapArray = new Uint8Array(texWidth * texHeight);
 
-    for (k = 0; k < nstages; k += 1) {
+    for (k = 0; k < this.nstages; k += 1) {
         for (w = 0; w < stages[k].weakClassifiers.length; w += 1) {
             bitvec = stages[k].weakClassifiers[w].categoryBitVector;
             for (lbpVal = 0; lbpVal < lbpArrangements; lbpVal += 1) {
@@ -345,15 +372,25 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
               type: gl.UNSIGNED_BYTE, flip: false});
 }
 
-FaceDetector.prototype.benchmark16Lookups = function (niters) {
+FaceDetector.prototype.benchmarkShader = function (niters, vs, fs) {
+    vs = vs || "benchmark16Lookups";
+    fs = fs || vs;
     niters = niters || 20;
-    var shaders = this.setupShaders("draw2d", "benchmark16Lookups", 1);
-    gl.useProgram(shaders[0]);
+    var shaders = this.setupShaders(vs, fs);
+    var shaderIdx = 0;
+    gl.useProgram(shaders[shaderIdx]);
+    cv.shaders.setUniforms(shaders[shaderIdx], {"scale": 1.0, "scaleN": 1});
 
     // Bind textures for the integral image and LBP lookup table
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
+    // try different image
+    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, $('img').get(0));
+    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.FLOAT, $('img').get(0));
     gl.viewport(0, 0, this.integralWidth, this.integralHeight);
+    gl.clearColor(0,0,0,1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.disable(gl.BLEND);
     var start = new Date();
     for(var i=0; i<niters; i++) {
         gl.drawArrays(gl.TRIANGLES, 0, 6);

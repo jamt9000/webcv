@@ -277,6 +277,122 @@ was rejected.
 
 <!--commit cce857eb3ef56be9aaf6d2df1e1cfe6665c74b9a -->
 
+Timing stages
+-------------
+
+In order to analyse the times of operations at a finer granularity, we want to
+time each draw call individually. However, because the CPU and GPU operate
+asynchronously, each draw call will in fact return immediately, and the CPU
+will only wait for the GPU to finish when some operation requiring information
+from a framebuffer is performed. Therefore, we insert a dummy readPixels
+operation, reading only 1 pixel, after each draw. Because some times are very
+small (below 1ms) and difficult to measure accurately, we also artificially
+repeat each draw operation 10 times, and divide the total time by 10. In this
+way, we can obtain a detailed profile of how much time is spent running the
+shader for each stage and scale.
+
+We observe that, as expected more time is spent in the early stages, because
+the first stage must run on all windows, whereas for laters stages some windows
+are rejected. Increasing the scale also shows a decrease in time, since less
+window positions need to be evaluated, although this is only really noticeable
+in the first two stages, the subsequent stages showing around the same time
+regardless of scale.
+
+
+
+![Times of stages and scales](./stagetimes.png)
+
+![Times for the first 3 stages at different scales](./scaletime.png)
+
+What is interesting to note is that the first three stages take up 48% of the
+time, while the remaining 17 stages take up 52% of the time. So while it is
+tempting to try to chip away at the above-2ms times in the early stages, we
+have a "long tail" effect where the sub-0.5ms times of later stages add up to a
+significant proportion of the overall time. Therefore, treating the early
+stages as special cases (such as manually fine-tuning the shader code for these
+specific stages) is unlikely to provide much of an advantage, compared to
+general techniques that apply equally to the later stages.
+
+Why are the shaders slow?
+-------------------------
+
+At an abstract level, all the fragment shaders are doing is
+
+1. Looking up some values in the integral image and LBP lookup textures
+2. Doing some maths to determine what value to output
+
+Now, GPUs are typically very fast at carrying out floating point calculations,
+so we wouldn't expect the "maths" portion to be overly challenging. @Harris
+explains this using the concept of "arithmetic intensity", the ratio of
+computation to bandwidth.
+
+    arithmeticIntensity = operations/wordsTransferred
+
+According to Harris, applications that benefit most from GPU acceleration are
+those with high arithmetic intensity, where "The data communication required to
+compute each element of the output is small and coherent". So ideally, the
+amount of data fetched from textures would be small, and would be spatially
+localised, in order to take advantage of caching. Unfortunately, in order to
+calculate the 9 blocks of the rectangle for each classifier, we require 16
+texture lookups, and the positions fetched for a window are not guaranteed to
+be close together. Since the number of weak classifier rectangles can vary from
+3 in the first stage to 10 in the later stages, we are talking about
+$3 \times 16 = 48$ at best and $10 \times 16 = 160$ at worst texture
+lookups. For the base scale they will at least be within the same $24 \times
+24$ area, but when the window is scaled we will be fetching values locations
+more spread out over the image. Texture caches are typically optimised for some
+2D neighbourhood of a few texels, which great for
+applications such as convolution where we just need to look up adjacent texels,
+but is not ideal for more general purpose approaches.
+
+To test the theory that the texture fetches are responsible for most of the
+slowdown, we create a test shader which performs the same texture fetches as
+our face detection shader but does not do anything useful with the result
+(instead just outputting the sum of the values, to ensure the fetches are not
+optimised out). Performing the same texture fetches as the 1st stage of the
+cascade (48 fetches), and timing over 1000 iterations, we get an average time of 3.1 ms per
+draw call, which is pretty much identical to the full shader. Further,
+commenting out half the fetches reduces the time to 1.3ms, clearly showing
+the impact of texture fetching on the time.
+
+TODO: Things tried that made no difference:
+
+* Moving code to calculate rectangle offsets into vertex shader
+* Using UNSIGNED_BYTE texture (is faster if just reading one component (byte), but
+  once we access all it is just as slow as FLOAT texture)
+* Iterating over scales within the shader (just made the "multiscale" shader
+  around as slow as the combined time for different scales, and makes it
+  difficult to track which windows accepted, since we need to encode for each
+  scale somehow)
+
+Optimisations to look at:
+
+* "Stage-parallel" processing - compute weak classifiers over a larger window
+  at once, as in @Obukhov2011 - problem: Can only output four bytes for each
+  fragment
+* Split some work between CPU and GPU. Since the different scales can be
+  computed independently, could hand off some portion of the scales to CPU to
+  be processed simultaneously
+  (but would then lose ability to use CPU for other tasks)
+* Reduce number of texture accesses by "factorisation" of the LBP pattern - eg
+  if we know the top left block should never be zero, can return negative from
+  classifier after just computing centre and top left blocks. Problems:
+  branching, and how to represent the "factoring" data in the shader (if it
+  requires fetching more values from texture could do more harm than good!)
+* z-Culling: use the depth buffer to indicate rejected windows, so that the
+  fragment shader doesn't run at all for these pixels (in theory should offer
+  some speedup by not running fragment shader at all on blocks of some size,
+  and will avoid having to read the "activeWindows" texture, but
+  doing the depth testing may have some penalty, and maybe the compiler is
+  already clever enough)
+
+![Calculating offsets for texture lookup with varyings in the vertex shader
+(green) vs fragment shader (red) gives no difference in timing, around 3.5ms in
+each case. The output values are simply the sum of all texture values mod 255,
+giving not very meaningful output, but showing that identical values are
+computed](./varyings-nodifference.png)
+
+
 Optimisation Techniques
 =======================
 

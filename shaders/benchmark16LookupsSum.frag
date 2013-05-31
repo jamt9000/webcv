@@ -18,6 +18,8 @@ uniform vec2 lbpLookupTableSize;
 uniform float scale;
 uniform int scaleN;
 
+#define SUMVALS(v) ((v).x + (v).y + (v).z + (v).w);
+
 // round for positive numbers only
 #define round_pos(x) floor(x+0.5)
 
@@ -46,31 +48,31 @@ void main() {
       float rh = round_pos(scale * rect.w) * px.y;
   
       // Top left quadrant
-      float p0 = texture2D(uSampler, vec2(posx + rx, posy + ry)).x;  // top left point
-      float p1 = texture2D(uSampler, vec2(posx + rx + rw, posy + ry)).x; // top right pt
-      float p2 = texture2D(uSampler, vec2(posx + rx, posy + (ry + rh))).x; // bottom left pt
-      float p3 = texture2D(uSampler, vec2(posx + rx + rw, posy + (ry + rh))).x; // bottom right
+      float p0 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + ry)));  // top left point
+      float p1 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + ry))); // top right pt
+      float p2 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + (ry + rh)))); // bottom left pt
+      float p3 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + (ry + rh)))); // bottom right
     
       // Top right quadrant
       rx += 2.0 * rw;
-      float p4 = texture2D(uSampler, vec2(posx + rx, posy + ry)).x;  // top left point
-      float p5 = texture2D(uSampler, vec2(posx + rx + rw, posy + ry)).x; // top right pt
-      float p6 = texture2D(uSampler, vec2(posx + rx, posy + ry + rh)).x; // bottom left pt
-      float p7 = texture2D(uSampler, vec2(posx + rx + rw, posy + ry + rh)).x; // bottom right
+      float p4 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + ry)));  // top left point
+      float p5 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + ry))); // top right pt
+      float p6 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + ry + rh))); // bottom left pt
+      float p7 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + ry + rh))); // bottom right
     
       // Bottom right quadrant
       ry += 2.0 * rh;
-      float p8 = texture2D(uSampler, vec2(posx + rx, posy + ry)).x;  // top left point
-      float p9 = texture2D(uSampler, vec2(posx + rx + rw, posy + ry)).x; // top right pt
-      float p10 = texture2D(uSampler, vec2(posx + rx, posy + ry + rh)).x; // bottom left pt
-      float p11 = texture2D(uSampler, vec2(posx + rx + rw, posy + ry + rh)).x; // bottom right
+      float p8 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + ry)));  // top left point
+      float p9 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + ry))); // top right pt
+      float p10 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + ry + rh))); // bottom left pt
+      float p11 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + ry + rh))); // bottom right
     
       // Bottom left quadrant
       rx -= 2.0 * rw;
-      float p12 = texture2D(uSampler, vec2(posx + rx, posy + ry)).x;  // top left point
-      float p13 = texture2D(uSampler, vec2(posx + rx + rw, posy + ry)).x; // top right pt
-      float p14 = texture2D(uSampler, vec2(posx + rx, posy + ry + rh)).x; // bottom left pt
-      float p15 = texture2D(uSampler, vec2(posx + rx + rw, posy + ry + rh)).x; // bottom right
+      float p12 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + ry)));  // top left point
+      float p13 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + ry))); // top right pt
+      float p14 = SUMVALS(texture2D(uSampler, vec2(posx + rx, posy + ry + rh))); // bottom left pt
+      float p15 = SUMVALS(texture2D(uSampler, vec2(posx + rx + rw, posy + ry + rh))); // bottom right
 
       float c = p8 - p6 - p13 + p3;
   
