@@ -3,6 +3,7 @@ var timeStage = false;
 var drawStages = false;
 var zCull = 1;
 var stencilCull = 0;
+var wantColourBuffer = true;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -57,16 +58,12 @@ var FaceDetector = function (cascade, width, height) {
     this.finalFramebuffer = gl.createFramebuffer();
     this.framebuffers = [framebuffer1, framebuffer2];
 
-    this.outTextures = [];
-
-    var outTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
-                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-    this.outTextures.push(outTexture1);
-    if(!zCull && !stencilCull) {
+    if(wantColourBuffer || drawStages || (!zCull && !stencilCull)) {
+        var outTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+                {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
         var outTexture2 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-        this.outTextures.push(outTexture2);
-
+        this.outTextures = [outTexture1, outTexture2];
     }
     this.finalTexture = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
@@ -98,9 +95,9 @@ var FaceDetector = function (cascade, width, height) {
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.stencilBuffer);
     }
     
-    //if(drawStages || (!zCull && !stencilCull)) {
+    if(wantColourBuffer || drawStages || (!zCull && !stencilCull)) {
         gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture1, 0);
-    //}
+    }
     
 
     if(!zCull && !stencilCull) {
@@ -483,7 +480,7 @@ FaceDetector.prototype.benchmarkShader = function (niters, vs, fs) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
     // try different image
-    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, $('img').get(0));
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, $('img').get(0));
     //gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.FLOAT, $('img').get(0));
     gl.viewport(0, 0, this.integralWidth, this.integralHeight);
     gl.clearColor(0,0,0,1);
