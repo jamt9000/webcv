@@ -1,5 +1,8 @@
 var showImage = false;
 var timeStage = false;
+var drawStages = false;
+var zCull = 1;
+var stencilCull = 0;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -54,26 +57,67 @@ var FaceDetector = function (cascade, width, height) {
     this.finalFramebuffer = gl.createFramebuffer();
     this.framebuffers = [framebuffer1, framebuffer2];
 
+    this.outTextures = [];
+
     var outTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-    var outTexture2 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
-                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
+    this.outTextures.push(outTexture1);
+    if(!zCull && !stencilCull) {
+        var outTexture2 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+                {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
+        this.outTextures.push(outTexture2);
+
+    }
     this.finalTexture = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-    this.outTextures = [outTexture1, outTexture2];
+
+    // Create buffer for depth
+    if(zCull) {
+        //this.depthTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+        //             {format: gl.DEPTH_COMPONENT, type: gl.UNSIGNED_SHORT, flip: false});
+        this.depthBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.integralWidth, this.integralHeight);
+    }
+
+    if(stencilCull) {
+        this.stencilBuffer = gl.createRenderbuffer();
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.stencilBuffer);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, this.integralWidth, this.integralHeight);
+    }
 
 
     // Attach textures to framebuffers (turns out doing this before
     // setupShaders() makes the first draw/readPixels a lot faster)
     gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer1);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture1, 0);
+    if(zCull) {
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthBuffer);
+    }
+    
+    if (stencilCull) {
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.stencilBuffer);
+    }
+    
+    //if(drawStages || (!zCull && !stencilCull)) {
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture1, 0);
+    //}
+    
 
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer2);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture2, 0);
+    if(!zCull && !stencilCull) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer2);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture2, 0);
+    }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0,
             gl.TEXTURE_2D, this.finalTexture, 0);
+    if(zCull) {
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthBuffer);
+    } 
+    
+    if(stencilCull) {
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.STENCIL_ATTACHMENT, gl.RENDERBUFFER, this.stencilBuffer);
+    }
 
 
     // Compile the code for all the shaders (one for each stage)
@@ -99,6 +143,18 @@ FaceDetector.prototype.detect = function (image) {
 
     if (window.times === undefined) {
         window.times = [];
+    }
+
+    if(zCull) {
+        gl.enable(gl.DEPTH_TEST);
+    }
+    
+    if(stencilCull) {
+        gl.enable(gl.STENCIL_TEST);
+        // Check if < 1
+        gl.stencilFunc(gl.LESS, 1, 0xff);
+        // If fail write 0
+        gl.stencilOp(gl.KEEP, gl.KEEP, gl.ZERO);
     }
 
 
@@ -146,29 +202,54 @@ FaceDetector.prototype.detect = function (image) {
         gl.viewport(0, 0, drawWidth, drawHeight);
         gl.disable(gl.BLEND);
 
+
+        if(zCull) {
+            // Clear depthbuffer
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers[0]);
+            gl.clearDepth(1.0);
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+            //gl.colorMask(false,false,false,false);
+        }
+        
+        if(stencilCull) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffers[0]);
+            gl.clearStencil(1);
+            gl.clear(gl.STENCIL_BUFFER_BIT);
+        }
+
+
         for (stageN = 0; stageN < this.nstages; stageN += 1) {
 
             // Render to the framebuffer holding one texture, while using the
             // other texture, containing windows still active from the previous
             // stage as input
             var outFramebuffer = this.framebuffers[stageN % 2];
+            if(zCull || stencilCull) {
+                outFramebuffer = this.framebuffers[0];
+            }
             gl.bindFramebuffer(gl.FRAMEBUFFER, outFramebuffer);
-            var activeWindowTexture = this.outTextures[(stageN + 1) % 2];
 
-            gl.clearColor(0,1,0,1);
+            gl.clearColor(0,0,0,0);
             gl.clear(gl.COLOR_BUFFER_BIT);
 
             if(stageN == this.nstages-1) {
                 // On last stage render to final out texture
                 gl.bindFramebuffer(gl.FRAMEBUFFER, this.finalFramebuffer);
-                gl.enable(gl.BLEND);
+                if(zCull || stencilCull) { 
+                    //gl.colorMask(true,true,true,true);
+                } else {
+                    gl.enable(gl.BLEND);
+                }
             }
 
 
             // Bind the texture of windows still active (potentially faces) to
             // texture unit 2
-            gl.activeTexture(gl.TEXTURE2);
-            gl.bindTexture(gl.TEXTURE_2D, activeWindowTexture);
+            if(!zCull && !stencilCull) {
+                var activeWindowTexture = this.outTextures[(stageN + 1) % 2];
+                gl.activeTexture(gl.TEXTURE2);
+                gl.bindTexture(gl.TEXTURE_2D, activeWindowTexture);
+            }
 
 
             gl.useProgram(this.lbpShaders[stageN]);
@@ -198,10 +279,16 @@ FaceDetector.prototype.detect = function (image) {
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
                 ndraws += 1;
             }
+            if(drawStages) { 
+                gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+                cv.utils.showRGBA(this.pixels, iw, ih);
+            }
         }
 
-        //gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-        //cv.utils.showRGBA(this.pixels, iw, ih);
+        if(drawStages) {
+            $('<br>').appendTo('body');
+        }
+
 
         scale *= this.scaleFactor;
         scaleN += 1;
@@ -276,6 +363,17 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
 
         if (showImage) {
             defs["DEBUG_SHOWIMG"] = 1;
+        }
+        if (zCull) {
+            defs["ZCULL"] = 1;
+        }
+        if (stencilCull) {
+            //XXX
+            defs["ZCULL"] = 1;
+        }
+
+        if(s == nstages-1) {
+            defs["LAST_STAGE"] = 1;
         }
 
         lbpShader = cv.shaders.getNamedShader(vertexShader, fragShader, {"defines": defs});

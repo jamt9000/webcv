@@ -44,8 +44,9 @@ void main() {
   acceptedFromPreviousStage = true;
   #endif
 
+  #ifndef ZCULL
   if (acceptedFromPreviousStage) {      
-    //const int w = 1;
+  #endif
     for(int w = 0; w < NWEAK; w++) {
       vec4 rect = featureRectangles[w];
 
@@ -128,11 +129,33 @@ void main() {
 
     float acceptedScale  = accepted * float(scaleN)/256.0;
 
+    #ifdef ZCULL
+            if(sumStage > stageThreshold) {
+                #ifdef LAST_STAGE
+                gl_FragColor = vec4(acceptedScale, accepted, accepted, accepted);
+                #else
+                discard;
+                #endif
+            } else {
+                #ifdef LAST_STAGE
+                discard;
+                #else
+                gl_FragColor = vec4(1.0,0.0,0.0,1.0);
+                #endif
+            }
+    #else
+
     gl_FragColor = vec4(acceptedScale, accepted, accepted, accepted);
+
+    #endif
   
+#ifndef ZCULL
   } else {
     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
   }
+#endif
+
+
 
 
 #ifdef DEBUG_INTEGRAL
