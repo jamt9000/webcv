@@ -1,8 +1,8 @@
 var showImage = false;
 var timeStage = false;
 var drawStages = false;
-var zCull = 1;
-var stencilCull = 0;
+var zCull = true;
+var stencilCull = false;
 var wantColourBuffer = true;
 
 var FaceDetector = function (cascade, width, height) {
@@ -467,12 +467,13 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
               type: gl.UNSIGNED_BYTE, flip: false});
 }
 
-FaceDetector.prototype.benchmarkShader = function (niters, vs, fs) {
+FaceDetector.prototype.benchmarkShader = function (niters, vs, fs, stage) {
     vs = vs || "benchmark16Lookups";
     fs = fs || vs;
+    if (stage === undefined) {stage = 0};
     niters = niters || 20;
     var shaders = this.setupShaders(vs, fs);
-    var shaderIdx = 0;
+    var shaderIdx = stage;
     gl.useProgram(shaders[shaderIdx]);
     cv.shaders.setUniforms(shaders[shaderIdx], {"scale": 1.0, "scaleN": 1});
 
@@ -480,9 +481,32 @@ FaceDetector.prototype.benchmarkShader = function (niters, vs, fs) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
     // try different image
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, $('img').get(0));
+    //gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, $('img').get(0));
     //gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.FLOAT, $('img').get(0));
-    gl.viewport(0, 0, this.integralWidth, this.integralHeight);
+    var outWidth, outHeight;
+    if(fs.indexOf("4InOne") != -1) {
+        outWidth = this.integralWidth/2;
+        outHeight = this.integralHeight/2;
+    }
+    else if(fs.indexOf("2InOne") != -1) {
+        outWidth = this.integralWidth/2;
+        outHeight = this.integralHeight;
+    }
+    else if(fs.indexOf("3InOne") != -1) {
+        outWidth = this.integralWidth/3;
+        outHeight = this.integralHeight;
+    } else{
+        outWidth = this.integralWidth;
+        outHeight = this.integralHeight;
+    }
+    //outWidth = this.integralWidth;
+    //outHeight = this.integralHeight;
+
+    outWidth = Math.floor(outWidth);
+    outHeight = Math.floor(outHeight);
+    console.log(outWidth, outHeight);
+    gl.viewport(0, 0, outWidth, outHeight);
+
     gl.clearColor(0,0,0,1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.disable(gl.BLEND);
@@ -492,8 +516,36 @@ FaceDetector.prototype.benchmarkShader = function (niters, vs, fs) {
         gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
     }
     var time = new Date() - start;
-    gl.readPixels(0, 0, this.integralWidth, this.integralHeight, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-    cv.utils.showRGBA(this.pixels, this.integralWidth, this.integralHeight);
+    gl.readPixels(0, 0, outWidth, outHeight, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    cv.utils.showRGBA(this.pixels, outWidth, outHeight);
     return time/niters;
+
+}
+
+
+function unpack4InOne(image, outw, outh) {
+    var inw = Math.floor(outw/2);
+    var inh = Math.floor(outh/2);
+
+    var outImage = new Uint8Array(outw * outh);
+    for(var x=0; x<inw; x+=1) {
+        for(var y=0; y<inh; y+=1) {
+            var in_red   = image[0 + x*4 + (inw * 4 * y)];
+            var in_green = image[1 + x*4 + (inw * 4 * y)];
+            var in_blue  = image[2 + x*4 + (inw * 4 * y)];
+            var in_alpha = image[3 + x*4 + (inw * 4 * y)];
+
+            var out_x = x*2;
+            var out_y = y*2;
+
+            outImage[out_x + out_y * outw] = in_red;
+            outImage[(out_x + 1) + out_y * outw] = in_green;
+            outImage[(out_x + 1) + (out_y + 1) * outw] = in_blue;
+            outImage[out_x + (out_y + 1) * outw] = in_alpha;
+
+        }
+    }
+
+    cv.utils.showGrayscale(outImage, outw, outh);
 
 }
