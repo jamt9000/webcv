@@ -1,4 +1,6 @@
 var debugLBP = false;
+var debugStage = true;
+var THRESHOLD_EPS = 1e-5;
 
 function dimensionsOfLBPLookupTable(cascade) {
     var stages = cascade.stages,
@@ -78,23 +80,33 @@ function imageToArray(image) {
 }
 
 function debugShowGrayscale(data_u8, w, h) {
-    var canvas = document.createElement("canvas");
+    var canvas = document.createElement("canvas"),
+        context,
+        imageData,
+        k,
+        grayByte;
+
     canvas.width = w;
     canvas.height = h;
-    var context = canvas.getContext('2d');
+    context = canvas.getContext('2d');
+    imageData = context.createImageData(w, h);
 
-    var imageData = context.createImageData(w, h);
-    
-    var k;
-    for(k = 0; k < w*h; k++) {
-        var grayByte = data_u8[k];
-        imageData.data[k*4] = grayByte;
-        imageData.data[k*4 + 1] = grayByte;
-        imageData.data[k*4 + 2] = grayByte;
-        imageData.data[k*4 + 3] = 255;
+    for (k = 0; k < w * h; k += 1) {
+        grayByte = data_u8[k];
+        imageData.data[k * 4] = grayByte;
+        imageData.data[k * 4 + 1] = grayByte;
+        imageData.data[k * 4 + 2] = grayByte;
+        imageData.data[k * 4 + 3] = 255;
     }
+
     context.putImageData(imageData, 0, 0);
-    document.body.appendChild(canvas);
+    var im = document.createElement("img");
+    im.width = w;
+    im.height = h;
+    im.src = canvas.toDataURL();
+    im.className = "webcvimage";
+    document.body.appendChild(im);
+    return im;
 }
 
 function integralImage(in_u8, w, h, out){
@@ -143,7 +155,7 @@ function evaluateStage(integralIm, stage, stageN, w_orig, h_orig, acceptedWindow
     var offs;
     var rectangle;
     var weaks = stage.weakClassifiers;
-    var stageThreshold = stage.stageThreshold;
+    var stageThreshold = stage.stageThreshold - THRESHOLD_EPS;
     var nweak = weaks.length;
     var weak;
     var rect;
@@ -233,7 +245,8 @@ function evaluateStage(integralIm, stage, stageN, w_orig, h_orig, acceptedWindow
                     r6 = p15 - p13 - p14 + p12;
                     r7 = p13 - p3 - p12 + p2;
 
-                    var lbp = ((r0 > c) << 7) + ((r1 > c) << 6) + ((r2 > c) << 5) + ((r3 > c) << 4) + ((r4 > c) << 3) + ((r5 > c) << 2) + ((r6 > c) << 1) + (r7 > c);
+                    var lbp = ((r0 >= c) << 7) + ((r1 >= c) << 6) + ((r2 >= c) << 5) + ((r3 >= c) << 4) + ((r4 >= c) << 3) + ((r5 >= c) << 2) + ((r6 >= c) << 1) + (r7 >= c);
+                    //var lbp = ((r0 > c) << 7) + ((r1 > c) << 6) + ((r2 > c) << 5) + ((r3 > c) << 4) + ((r4 > c) << 3) + ((r5 > c) << 2) + ((r6 > c) << 1) + (r7 > c);
 
                     bit = Boolean(bitvec[lbp >> 5] & (1 << (lbp & 31)));
                     //bit = window.lbpLookup[256 * w + lbp + lbpDim[0] * stageN];
@@ -263,10 +276,12 @@ function evaluateStage(integralIm, stage, stageN, w_orig, h_orig, acceptedWindow
         }
     }
 
-    if (debugLBP) {
-        document.body.appendChild(document.createElement('br'));
-        debugShowGrayscale(acceptedWindows, w_integral, h_integral);
-        debugShowGrayscale(lbpImage, w_integral, h_integral);
+    if (debugStage) {
+        //document.body.appendChild(document.createElement('br'));
+        debugShowGrayscale(acceptedWindows, w_integral, h_integral).title = "Stage " + stageN;
+        if(debugLBP) {
+            debugShowGrayscale(lbpImage, w_integral, h_integral).title = "Stage " + stageN;
+        }
     }
 
     var endTime = new Date();
@@ -303,6 +318,9 @@ function runCascade(image, cascade) {
     for(scale = 1.0; scale * windowSize < w && scale * windowSize < h; scale *= scaleFactor) {
         var scaledWindowSize = Math.round(scale * windowSize);
         var acceptedWindows = new Uint8Array((image.width+1) * (image.height+1));
+        var title = document.createElement('h2')
+        title.innerHTML = 'Scale' + scale;
+        document.body.appendChild(title);
         for(stageN = 0; stageN < stageCount; stageN++) {
             evaluateStage(integralIm, cascade.stages[stageN], stageN, image.width, image.height, acceptedWindows, scale);
         }
