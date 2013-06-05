@@ -293,6 +293,7 @@ function evaluateStage(integralIm, stage, stageN, w_orig, h_orig, acceptedWindow
 
 function runCascade(image, cascade) {
     var image_u8 = imageToArray(image);
+    var outpixels_u8 = new Uint8Array(image.width * image.height);
 
     window.lbpDim = dimensionsOfLBPLookupTable(cascade);
     window.lbpLookup = createLBPLookupTable(cascade, lbpDim);
@@ -333,6 +334,7 @@ function runCascade(image, cascade) {
                     rectangles.push([x, y, scaledWindowSize, scaledWindowSize]);
 
                     image_u8[x + y * image.width] = 255;
+                    outpixels_u8[x + y * image.width] = 255;
                 }  
             }
         }
@@ -346,6 +348,7 @@ function runCascade(image, cascade) {
     
 
     debugShowGrayscale(image_u8, image.width, image.height);
+    debugShowGrayscale(outpixels_u8, image.width, image.height);
     return rectangles;
     
 }

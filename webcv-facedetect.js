@@ -60,13 +60,13 @@ var FaceDetector = function (cascade, width, height) {
     this.framebuffers = [framebuffer1, framebuffer2];
 
     if(wantColourBuffer || drawStages || (!zCull && !stencilCull)) {
-        var outTexture1 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+        var outTexture1 = cv.gpu.blankTexture(this.width, this.height,
                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
-        var outTexture2 = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+        var outTexture2 = cv.gpu.blankTexture(this.width, this.height,
                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
         this.outTextures = [outTexture1, outTexture2];
     }
-    this.finalTexture = cv.gpu.blankTexture(this.integralWidth, this.integralHeight,
+    this.finalTexture = cv.gpu.blankTexture(this.width, this.height,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
 
     // Create buffer for depth
@@ -75,13 +75,13 @@ var FaceDetector = function (cascade, width, height) {
         //             {format: gl.DEPTH_COMPONENT, type: gl.UNSIGNED_SHORT, flip: false});
         this.depthBuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.integralWidth, this.integralHeight);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
     }
 
     if(stencilCull) {
         this.stencilBuffer = gl.createRenderbuffer();
         gl.bindRenderbuffer(gl.RENDERBUFFER, this.stencilBuffer);
-        gl.renderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, this.integralWidth, this.integralHeight);
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.STENCIL_INDEX8, this.width, this.height);
     }
 
 
@@ -127,7 +127,7 @@ var FaceDetector = function (cascade, width, height) {
             this.integralHeight, {format: gl.LUMINANCE, filter: gl.NEAREST,
                 type: gl.FLOAT, flip: false});
 
-    this.pixels = new Uint8Array(this.integralWidth * this.integralHeight * 4);
+    this.pixels = new Uint8Array(this.width * this.height * 4);
     this.greyImage = new Uint8Array(this.width * this.height);
     console.log("Setup time", new Date() - setupStart);
 
@@ -135,11 +135,7 @@ var FaceDetector = function (cascade, width, height) {
 
 
 FaceDetector.prototype.detect = function (image) {
-    var w = this.width,
-        h = this.height,
-        iw = this.integralWidth,
-        ih = this.integralHeight,
-        cascade = this.cascade;
+    var cascade = this.cascade;
 
     if (window.times === undefined) {
         window.times = [];
@@ -159,12 +155,12 @@ FaceDetector.prototype.detect = function (image) {
 
 
     // Convert to grayscale
-    var grey = cv.imgproc.imageToGreyArray(image, this.greyImage, w, h);
+    var grey = cv.imgproc.imageToGreyArray(image, this.greyImage, this.width, this.height);
 
     // Create and upload integral image
     cv.imgproc.integralImage(grey, this.width, this.height, this.integral);
     gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, iw, ih, 0, gl.LUMINANCE,
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, this.integralWidth, this.integralHeight, 0, gl.LUMINANCE,
             gl.FLOAT, this.integral);
 
     // Bind textures for the integral image and LBP lookup table
@@ -196,8 +192,8 @@ FaceDetector.prototype.detect = function (image) {
     for (var s=0; s<this.nscales; s++) {
         var scaleTime = new Date();
         var scaledWindowSize = Math.round(scale * this.windowSize);
-        var drawWidth = this.integralWidth - scaledWindowSize;
-        var drawHeight = this.integralHeight - scaledWindowSize;
+        var drawWidth = this.width - scaledWindowSize;
+        var drawHeight = this.height - scaledWindowSize;
 
         gl.viewport(0, 0, drawWidth, drawHeight);
         gl.disable(gl.BLEND);
@@ -281,8 +277,8 @@ FaceDetector.prototype.detect = function (image) {
                 ndraws += 1;
             }
             if(drawStages) { 
-                gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-                cv.utils.showRGBA(this.pixels, iw, ih);
+                gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+                cv.utils.showRGBA(this.pixels, this.width, this.height);
             }
         }
 
@@ -296,16 +292,16 @@ FaceDetector.prototype.detect = function (image) {
     }
 
     // Gather the rectangles from the image
-    gl.readPixels(0, 0, iw, ih, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
-    //cv.utils.showRGBA(this.pixels, iw, ih);
+    gl.readPixels(0, 0, this.width, this.height, gl.RGBA, gl.UNSIGNED_BYTE, this.pixels);
+    //cv.utils.showRGBA(this.pixels, this.width, this.height);
     var k, x, y, pixelValue, scaleBy;
-    for (k = 0; k < iw * ih; k += 1) {
+    for (k = 0; k < this.width * this.height; k += 1) {
         // Scale number stored as pixel value
         pixelValue = this.pixels[k * 4];
         if (pixelValue != 0) {
             scaleBy = Math.pow(this.scaleFactor, pixelValue-1);
-            x = (k) % iw;
-            y = Math.floor((k) / iw);
+            x = (k) % this.width;
+            y = Math.floor((k) / this.width);
             rectangles.push([x, y, this.windowSize * scaleBy, this.windowSize * scaleBy]);
         }
     }
@@ -325,10 +321,6 @@ FaceDetector.prototype.detect = function (image) {
 FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstagesTest) {
     var shaderArray = [],
         cascade = this.cascade,
-        w = this.width,
-        h = this.height,
-        iw = this.integralWidth,
-        ih = this.integralHeight,
         vertexAttributes,
         lbpShader,
         nstages = nstagesTest || this.nstages, 
@@ -347,12 +339,12 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
 
     // A simple rectangle (2 triangles)
     var vertCoords = new Float32Array([
-        0.0,   0.0,
-        iw, 0.0,
-        0.0,   ih,
-        0.0,   ih,
-        iw, 0.0,
-        iw, ih]);
+        0.0,        0.0,
+        this.width, 0.0,
+        0.0,        this.height,
+        0.0,        this.height,
+        this.width, 0.0,
+        this.width, this.height]);
 
     this.vertBuf = cv.shaders.arrayBuffer(vertCoords);
 
@@ -382,8 +374,9 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
         gl.useProgram(lbpShader);
 
         uniforms = {
-            "uResolution": [iw, ih],
-            "uImageSize": [iw, ih],
+            "uResolution": [this.width, this.height],
+            "uIntegralImageSize": [this.integralWidth, this.integralHeight],
+            "uImageSize": [this.width, this.height],
             "stageThreshold": stage.stageThreshold - THRESHOLD_EPS,
             "leafValues": [],
             "featureRectangles": [],
@@ -449,7 +442,7 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
         texWidth = dim[0],
         texHeight = dim[1],
         k,
-        w,
+        wi,
         lbpMapArray,
         bitvec,
         lbpVal,
@@ -458,11 +451,11 @@ FaceDetector.prototype.createLBPLookupTexture = function () {
     lbpMapArray = new Uint8Array(texWidth * texHeight);
 
     for (k = 0; k < this.nstages; k += 1) {
-        for (w = 0; w < stages[k].weakClassifiers.length; w += 1) {
-            bitvec = stages[k].weakClassifiers[w].categoryBitVector;
+        for (wi = 0; wi < stages[k].weakClassifiers.length; wi += 1) {
+            bitvec = stages[k].weakClassifiers[wi].categoryBitVector;
             for (lbpVal = 0; lbpVal < lbpArrangements; lbpVal += 1) {
                 bit = Boolean(bitvec[lbpVal >> 5] & (1 << (lbpVal & 31)));
-                lbpMapArray[(w * lbpArrangements + lbpVal) + k * texWidth] = bit * 255;
+                lbpMapArray[(wi * lbpArrangements + lbpVal) + k * texWidth] = bit * 255;
             }
         }
     }
@@ -490,22 +483,22 @@ FaceDetector.prototype.benchmarkShader = function (niters, vs, fs, stage) {
     //gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, gl.LUMINANCE, gl.FLOAT, $('img').get(0));
     var outWidth, outHeight;
     if(fs.indexOf("4InOne") != -1) {
-        outWidth = this.integralWidth/2;
-        outHeight = this.integralHeight/2;
+        outWidth = this.width/2;
+        outHeight = this.height/2;
     }
     else if(fs.indexOf("2InOne") != -1) {
-        outWidth = this.integralWidth/2;
-        outHeight = this.integralHeight;
+        outWidth = this.width/2;
+        outHeight = this.height;
     }
     else if(fs.indexOf("3InOne") != -1) {
-        outWidth = this.integralWidth/3;
-        outHeight = this.integralHeight;
+        outWidth = this.width/3;
+        outHeight = this.height;
     } else{
-        outWidth = this.integralWidth;
-        outHeight = this.integralHeight;
+        outWidth = this.width;
+        outHeight = this.height;
     }
-    //outWidth = this.integralWidth;
-    //outHeight = this.integralHeight;
+    //outWidth = this.width;
+    //outHeight = this.height;
 
     outWidth = Math.floor(outWidth);
     outHeight = Math.floor(outHeight);
