@@ -1,9 +1,10 @@
 var showImage = false;
 var timeStage = false;
-var drawStages = false;
-var zCull = true;
+var drawStages = true;
+var zCull = false;
 var stencilCull = false;
 var wantColourBuffer = true;
+var THRESHOLD_EPS = 1e-5;
 
 var FaceDetector = function (cascade, width, height) {
     if (!(this instanceof FaceDetector)) {
@@ -383,7 +384,7 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
         uniforms = {
             "uResolution": [iw, ih],
             "uImageSize": [iw, ih],
-            "stageThreshold": stage.stageThreshold,
+            "stageThreshold": stage.stageThreshold - THRESHOLD_EPS,
             "leafValues": [],
             "featureRectangles": [],
             "lbpLookupTableSize": this.lbpLookupTableSize,

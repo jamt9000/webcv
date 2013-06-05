@@ -1640,7 +1640,7 @@ WebCV.SHADERSOURCE = {
             "      break;", 
             "      #endif", 
             "", 
-            "      lbp = (int(r0 > c) * 128) + (int(r1 > c) * 64) + (int(r2 > c) * 32) + (int(r3 > c) * 16) + (int(r4 > c) * 8) + (int(r5 > c) * 4) + (int(r6 > c) * 2) + int(r7 > c);", 
+            "      lbp = (int(r0 >= c) * 128) + (int(r1 >= c) * 64) + (int(r2 >= c) * 32) + (int(r3 >= c) * 16) + (int(r4 >= c) * 8) + (int(r5 >= c) * 4) + (int(r6 >= c) * 2) + int(r7 >= c);", 
             "", 
             "      // +0.5 to the numerator to get the pixel centre (since the texture coordinates give the bottom left of pixel)", 
             "", 
