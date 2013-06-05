@@ -118,6 +118,7 @@ var FaceDetector = function (cascade, width, height) {
 
 
     // Compile the code for all the shaders (one for each stage)
+    this.vertBuf = undefined; // Keep track of vertex buffer for quad. Set in setupShaders
     this.lbpShaders = this.setupShaders();
 
     this.integral = new Float32Array(this.integralWidth * this.integralHeight);
@@ -126,6 +127,7 @@ var FaceDetector = function (cascade, width, height) {
                 type: gl.FLOAT, flip: false});
 
     this.pixels = new Uint8Array(this.integralWidth * this.integralHeight * 4);
+    this.greyImage = new Uint8Array(this.width * this.height);
     console.log("Setup time", new Date() - setupStart);
 
 }
@@ -156,7 +158,7 @@ FaceDetector.prototype.detect = function (image) {
 
 
     // Convert to grayscale
-    var grey = cv.imgproc.imageToGreyArray(image);
+    var grey = cv.imgproc.imageToGreyArray(image, this.greyImage, w, h);
 
     // Create and upload integral image
     cv.imgproc.integralImage(grey, this.width, this.height, this.integral);
@@ -251,6 +253,7 @@ FaceDetector.prototype.detect = function (image) {
 
             gl.useProgram(this.lbpShaders[stageN]);
             cv.shaders.setUniforms(this.lbpShaders[stageN], {"scale": scale, "scaleN": scaleN});
+            cv.shaders.setAttributes(this.lbpShaders[stageN], {aPosition: this.vertBuf});
 
 
             if (showImage && stageN === 0) {
@@ -314,6 +317,7 @@ FaceDetector.prototype.detect = function (image) {
     var overallTime = new Date() - timeStart;
     console.log("Overall time:", overallTime);
     window.times.push(overallTime);
+    gl.disable(gl.DEPTH_TEST);
     return rectangles;
 }
 
@@ -349,7 +353,7 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
         iw, 0.0,
         iw, ih]);
 
-    var vertBuf = cv.shaders.arrayBuffer(vertCoords);
+    this.vertBuf = cv.shaders.arrayBuffer(vertCoords);
 
     for (s = 0; s < nstages; s += 1) {
         stage = cascade.stages[s];
@@ -397,7 +401,7 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
 
         cv.shaders.setUniforms(lbpShader, uniforms);
 
-        cv.shaders.setAttributes(lbpShader, {aPosition: vertBuf});
+        cv.shaders.setAttributes(lbpShader, {aPosition: this.vertBuf});
 
         shaderArray.push(lbpShader);
     }

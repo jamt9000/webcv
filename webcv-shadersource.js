@@ -1239,6 +1239,12 @@ WebCV.SHADERSOURCE = {
             "    //gl_FragColor = vec4(vTextureCoord, 1.0, 1.0);", 
             "}"
         ], 
+        "drawconst": [
+            "precision mediump float;", 
+            "void main() {", 
+            "    gl_FragColor = vec4(1.,0.,0.,1.);", 
+            "}"
+        ], 
         "benchmark3InOne": [
             "precision mediump float;", 
             "uniform sampler2D uSampler;", 
@@ -2122,34 +2128,7 @@ WebCV.SHADERSOURCE = {
             "   vTextureCoord = aTextureCoord;", 
             "}"
         ], 
-        "lbpStage": [
-            "// Uniforms - same for all vertices", 
-            "uniform vec2 uResolution;", 
-            "//Attributes - vertex-specific", 
-            "attribute vec2 aPosition;", 
-            "void main() {", 
-            "   // convert pixel coords to range -1,1", 
-            "   vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;", 
-            "   gl_Position = vec4(normCoords, -1.0, 1.0);", 
-            "}"
-        ], 
         "draw2d": [
-            "// Uniforms - same for all vertices", 
-            "uniform vec2 uResolution;", 
-            "//Attributes - vertex-specific", 
-            "attribute vec2 aPosition;", 
-            "attribute vec2 aTextureCoord;", 
-            "// Varyings - for passing data to fragment shader", 
-            "varying vec2 vTextureCoord;", 
-            "void main() {", 
-            "   // convert pixel coords to range -1,1", 
-            "   vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;", 
-            "   gl_Position = vec4(normCoords, 0, 1);", 
-            "   // pass aTextureCoord to fragment shader", 
-            "   vTextureCoord = aTextureCoord;", 
-            "}"
-        ], 
-        "benchmark16Lookups": [
             "// Uniforms - same for all vertices", 
             "uniform vec2 uResolution;", 
             "//Attributes - vertex-specific", 
@@ -2234,6 +2213,44 @@ WebCV.SHADERSOURCE = {
             "      vPos[w + 15] = vec2(posx + rx + rw, posy + ry + rh); // bottom right", 
             "      */", 
             "   }", 
+            "}"
+        ], 
+        "drawconst": [
+            "// Uniforms - same for all vertices", 
+            "uniform vec2 uResolution;", 
+            "//Attributes - vertex-specific", 
+            "attribute vec2 aPosition;", 
+            "void main() {", 
+            "   // convert pixel coords to range -1,1", 
+            "   vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;", 
+            "   gl_Position = vec4(normCoords, 0, 1);", 
+            "}"
+        ], 
+        "benchmark16Lookups": [
+            "// Uniforms - same for all vertices", 
+            "uniform vec2 uResolution;", 
+            "//Attributes - vertex-specific", 
+            "attribute vec2 aPosition;", 
+            "attribute vec2 aTextureCoord;", 
+            "// Varyings - for passing data to fragment shader", 
+            "varying vec2 vTextureCoord;", 
+            "void main() {", 
+            "   // convert pixel coords to range -1,1", 
+            "   vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;", 
+            "   gl_Position = vec4(normCoords, 0, 1);", 
+            "   // pass aTextureCoord to fragment shader", 
+            "   vTextureCoord = aTextureCoord;", 
+            "}"
+        ], 
+        "lbpStage": [
+            "// Uniforms - same for all vertices", 
+            "uniform vec2 uResolution;", 
+            "//Attributes - vertex-specific", 
+            "attribute vec2 aPosition;", 
+            "void main() {", 
+            "   // convert pixel coords to range -1,1", 
+            "   vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;", 
+            "   gl_Position = vec4(normCoords, -1.0, 1.0);", 
             "}"
         ]
     }

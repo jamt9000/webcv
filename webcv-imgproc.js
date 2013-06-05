@@ -11,10 +11,11 @@
             /**
              * Convert an image element to a greyscale Uint8 array,
              * using a canvas element
+             * can scale image to swidth*sheight
              */
-            imageToGreyArray: function (image, outarray) {
-                var w = image.width,
-                    h = image.height,
+            imageToGreyArray: function (image, outarray, swidth, sheight) {
+                var w = swidth,
+                    h = sheight,
                     canvas = workCanvas,
                     context,
                     imageData,
@@ -23,17 +24,24 @@
                     grey_u8,
                     k;
 
+                if (w === undefined) {
+                    w = image.width;
+                }
+                if(h === undefined) {
+                    h = image.height;
+                }
+
                 canvas.width = w;
                 canvas.height = h;
 
                 context = canvas.getContext('2d');
-                context.drawImage(image, 0, 0);
+                context.drawImage(image, 0, 0, w, h);
 
                 imageData = context.getImageData(0, 0, w, h);
                 image_u8 = imageData.data;
                 nbytes = w * h;
 
-                if (outarray === undefined) {
+                if (outarray === undefined || outarray === null) {
                     grey_u8 = new Uint8ClampedArray(nbytes);
                 } else {
                     grey_u8 = outarray;

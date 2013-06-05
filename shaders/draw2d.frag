@@ -1,3 +1,4 @@
+precision mediump float;
 uniform sampler2D uSampler;
 uniform vec2 uImageSize; // for pixel based calculation
 varying vec2 vTextureCoord; // from vertex shader
