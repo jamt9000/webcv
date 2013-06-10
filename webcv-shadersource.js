@@ -858,6 +858,29 @@ WebCV.SHADERSOURCE = {
             "", 
             "}"
         ], 
+        "integralToBytes": [
+            "precision highp float;", 
+            "uniform sampler2D uSampler;", 
+            "uniform vec2 uIntegralImageSize;", 
+            "", 
+            "#define integralCoord(v)  ((v)/uIntegralImageSize)", 
+            "", 
+            "void main() {", 
+            "    float integralVal = texture2D(uSampler, integralCoord(gl_FragCoord.xy)).x;", 
+            "", 
+            "    // 2**16 = 65536", 
+            "    // 2**8 = 256", 
+            "", 
+            "    float byte1 = floor(integralVal/65536.);", 
+            "    float byte2 = floor((integralVal - (byte1 * 65536.))/256.);", 
+            "    float byte3 = floor((integralVal - floor(integralVal/256.) * 256.));", 
+            "", 
+            "    gl_FragColor = vec4(float(byte1)/255.,float(byte2)/255.,float(byte3)/255., 1.0);", 
+            "    //float dbg = float(texture2D(uSampler, integralCoord(gl_FragCoord.xy)).x > 1500000.0);", 
+            "    //gl_FragColor = vec4(dbg, 0.0, 0.0, 1.0);", 
+            "", 
+            "}"
+        ], 
         "benchmark2InOne_loop": [
             "precision mediump float;", 
             "uniform sampler2D uSampler;", 
@@ -1125,6 +1148,20 @@ WebCV.SHADERSOURCE = {
             "    gl_FragColor = vec4(dbg/256.0, 0.0, 0.0, 1.0);", 
             "#endif", 
             "", 
+            "}"
+        ], 
+        "integralImage": [
+            "precision highp float;", 
+            "uniform sampler2D uSampler;", 
+            "uniform vec2 uImageSize; // for pixel based calculation", 
+            "uniform vec2 uResolution;", 
+            "varying vec2 vTextureCoord; // from vertex shader", 
+            "", 
+            "void main() {", 
+            "    //gl_FragColor = texture2D(uSampler, vTextureCoord) * vec4(1.,1.,1.,0.5);", 
+            "    vec4 colour = texture2D(uSampler, vTextureCoord);", 
+            "    float grey = floor((colour.r*255. + colour.g*255. + colour.b*255.)/3.);", 
+            "    gl_FragColor = vec4(grey,grey,grey,grey)/3.;", 
             "}"
         ], 
         "benchmark4InOne": [
@@ -2256,6 +2293,22 @@ WebCV.SHADERSOURCE = {
             "   // convert pixel coords to range -1,1", 
             "   vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;", 
             "   gl_Position = vec4(normCoords, -1.0, 1.0);", 
+            "}"
+        ], 
+        "integralImage": [
+            "// Uniforms - same for all vertices", 
+            "uniform vec2 uResolution;", 
+            "//Attributes - vertex-specific", 
+            "attribute vec2 aPosition;", 
+            "attribute vec2 aTextureCoord;", 
+            "// Varyings - for passing data to fragment shader", 
+            "varying vec2 vTextureCoord;", 
+            "void main() {", 
+            "   // convert pixel coords to range -1,1", 
+            "   vec2 normCoords = ((aPosition/uResolution) * 2.0) - 1.0;", 
+            "   gl_Position = vec4(normCoords, 0, 1);", 
+            "   // pass aTextureCoord to fragment shader", 
+            "   vTextureCoord = aTextureCoord;", 
             "}"
         ]
     }
