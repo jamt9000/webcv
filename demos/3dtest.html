@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="three.min.js"></script>
+        <script src="TrackballControls.js"></script>
+        <script src="FlyControls.js"></script>
+        <script src="jquery.js"></script>
+        <script src="droid_sans_regular.typeface.js"></script>
+        <script>
+            var w = 400;
+            var h = 300;
+            var renderer = new THREE.WebGLRenderer();
+            var camera = new THREE.PerspectiveCamera(/*angle=*/45, /*aspect=*/w/h,
+            /*near=*/0.1, /*far=*/10000);
+            var scene = new THREE.Scene();
+            $(document).ready(function() {
+                scene.add(camera);
+                camera.position.z = 300;
+                renderer.setSize(w, h);
+
+                // FLOOR
+                var floorTexture = new THREE.ImageUtils.loadTexture("grass.png");
+                floorTexture.wrapS = THREE.RepeatWrapping;
+                floorTexture.wrapT = THREE.RepeatWrapping;
+                floorTexture.repeat.set(10,10);
+                var floor = new THREE.Mesh(
+                    new THREE.PlaneGeometry(1000,1000,1,1),
+                    new THREE.MeshBasicMaterial({map:floorTexture, side:THREE.DoubleSide})
+                );
+                floor.position.y = -100;
+                floor.rotation.x = Math.PI/2;
+                scene.add(floor);
+
+                // SPHERE
+                var sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(50,16,16),
+                    new THREE.MeshLambertMaterial({color: 0xCC0000})
+                );
+                scene.add(sphere);
+
+                // TEXT
+                var text = new THREE.Mesh(
+                    new THREE.TextGeometry("Hello", {font: "droid sans", size:18}),
+                    new THREE.MeshLambertMaterial({color: 0xCCff00})
+                );
+                text.position.x += 50;
+                scene.add(text);
+
+                // LIGHT
+                var pointLight = new THREE.PointLight(0xFFFFFF);
+                pointLight.position.x = 10;
+                pointLight.position.y = 50;
+                pointLight.position.z = 130;
+                scene.add(pointLight);
+
+
+                $('#3dcontainer').append(renderer.domElement);
+                //var controls = new THREE.TrackballControls(camera);
+                var controls = new THREE.FlyControls(camera, renderer.domElement);
+                controls.dragToLook = true;
+
+                renderLoop();
+
+
+                function renderLoop() {
+                    var start = performance.now();
+                    renderer.render(scene, camera);
+                    controls.update(1.0);
+                    //console.log(performance.now() - start);
+
+                    window.requestAnimationFrame(renderLoop);
+                }
+            });
+
+        </script>
+    </head>
+    <body>
+        <h1>3D scene</h1>
+        <div id="3dcontainer"></div>
+    </body>
+</html>
