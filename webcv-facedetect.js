@@ -312,7 +312,8 @@ FaceDetector.prototype.detect = function (image) {
             scaleBy = Math.pow(this.scaleFactor, pixelValue-1);
             x = (k) % this.width;
             y = Math.floor((k) / this.width);
-            rectangles.push([x, y, this.windowSize * scaleBy, this.windowSize * scaleBy]);
+            rectangles.push([x, y, Math.floor(this.windowSize * scaleBy),
+                                   Math.floor(this.windowSize * scaleBy)]);
         }
     }
 
@@ -326,6 +327,7 @@ FaceDetector.prototype.detect = function (image) {
     console.log("Detection time:", detectTime, "Detection+integral:", totalTime);
     window.times.push(detectTime);
     gl.disable(gl.DEPTH_TEST);
+    this.rectangles = rectangles;
     return rectangles;
 }
 

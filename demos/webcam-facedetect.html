@@ -10,9 +10,19 @@
 <script src="../webcv-gpu.js"></script>
 <script src="../webcv-facedetect.js"></script>
 <script src="jquery.js"></script>
+<script src="dat.gui.min.js"></script>
+
+<!-- We use grouping function from objdetect or jsfeat library -->
+<script src="objectdetect.js"></script>
+<script>var jsfeat = {};</script>
+<script src="jsfeat_haar.js"></script>
 <script>
 
 window.stop = false;
+window.groupRects = false;
+window.showBest = false;
+window.minNeighbours = 4;
+window.jsfeatGroup = false;
 
 (function () {
 
@@ -32,11 +42,10 @@ window.stop = false;
             // rect elements = [x,y,w,h]
             var rect = rects[i];
             // Correct for y inversion
-            //rect[1] = canvas.height - rect[1];
             var x=rect[0],
-                y=rect[1],
+                y=canvas.height - rect[1],
                 w=rect[2],
-                h=rect[3];
+                h=-rect[3];
             // Top left
             outArray.push(x);
             outArray.push(y);
@@ -67,10 +76,61 @@ window.stop = false;
         // Do detection
         var rects = fd.detect(vid);
 
+        if (window.groupRects) {
+            var groupStart = performance.now();
+            if(jsfeatGroup) {
+                rects = jsfeat.haar.group_rectangles(rects, window.minNeighbours);
+            } else {
+                rects = objectdetect.groupRectangles(rects, window.minNeighbours);
+            }
+            console.log("Group time", performance.now() - groupStart);
+        }
+
+        if(window.groupRects && window.showBest) {
+
+            var bestNeighbourCount = 0;
+            var bestRect;
+
+            for (var i=0; i<rects.length; i+=1) {
+                if (rects[i][4] > bestNeighbourCount) {
+                    bestRect = rects[i];
+                    bestNeighbourCount = rects[i][4];
+                }
+            }
+
+            if(bestRect !== undefined) {
+                rects = [bestRect];
+            } else {
+                rects = [];
+            }
+
+        }
+
+
+        /*
+        $('#webcamcontainer div').remove()
+
+        $(rects).each(function(n,e) {
+            var box = $('<div>');
+                box.css({"border": "solid 1px red",
+                    "position": "absolute",
+                    "left": e[0],
+                    "top": e[1],
+                    "width": e[2],
+                    "height": e[3]});
+                $('#webcamcontainer').append(box);
+            });
+        */
+
+
         // Prepare to draw image
         gl.useProgram(drawShader);
         cv.shaders.setAttributes(drawShader, attrs);
         cv.gpu.uploadToTexture(vid, vidTexture);
+
+        // XXX global pixelStorei set by uploadToTexture
+        // messes up detection, reset here
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
 
         // Bind to texture unit 0
         gl.activeTexture(gl.TEXTURE0);
@@ -84,13 +144,6 @@ window.stop = false;
 
         // Upload face rectangles to buffer
         var rectangleVerts = rectangleVertices(rects);
-        /*
-        rectangleVerts = [0,0,
-                          100,0,
-                          100,100,
-                          0,100];
-        */
-        //console.log(rectangleVerts);
         gl.bindBuffer(gl.ARRAY_BUFFER, rectBuf);
         gl.bufferData(gl.ARRAY_BUFFER, new Uint16Array(rectangleVerts), gl.STATIC_DRAW);
         gl.useProgram(rectShader);
@@ -110,7 +163,6 @@ window.stop = false;
         vid.src = stream;
 
         frameLoop();
-
     }
 
     $(document).ready(function () {
@@ -171,6 +223,14 @@ window.stop = false;
 
 
         cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
+
+        // GUI
+        var gui = new dat.GUI();
+        gui.add(window, 'groupRects');
+        gui.add(window, 'showBest');
+        gui.add(window, 'minNeighbours', 0, 50);
+        gui.add(window, 'stop').onChange(frameLoop);
+        gui.add(window, 'jsfeatGroup');
     });
 
 }());
@@ -178,7 +238,9 @@ window.stop = false;
 </script>
 </head>
 <body>
-<video id="webcamvideo" autoplay width="320" height="240"></video>
+<div id="webcamcontainer" style="position:relative">
+    <video id="webcamvideo" autoplay width="320" height="240"></video>
+</div>
 <canvas id="glcanvas" width="320" height="240"></canvas>
 
 </body>
