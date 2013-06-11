@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+    <head>
+        <script src="../sylvester.js"></script>
+        <script src="../kalman.js"></script>
+        <script src="jquery.js"></script>
+        <script src="dat.gui.min.js"></script>
+        <script>
+            $(document).ready(function() {
+                window.kal = new Kalman2D();
+                gui = new dat.GUI();
+                gui.add(kal, 'noiseScalar', 0,100);
+                gui.add(kal, 'motionNoiseScalar',0,100);
+            });
+
+            $(document).mouseup(function(e) {
+                var res = kal.filter([e.pageX, e.pageY]);
+                var update = res.update;
+                var pred_estim = res.predict[0].col(1).elements;
+                var cur_estim = res.update[0].col(1).elements;
+
+
+                var curx = cur_estim[0];
+                var cury = cur_estim[1];
+
+                var predx = pred_estim[0];
+                var predy = pred_estim[1];
+
+                console.log('estim=',res.predict[0].inspect())
+
+                var box = $('<div>');
+                    box.css({position:"absolute",
+                             background: "blue",
+                             width: 5,
+                             height: 5,
+                             left: curx,
+                             top: cury});
+                $('body').append(box);
+
+                var box = $('<div>');
+                    box.css({position:"absolute",
+                             background: "red",
+                             width: 5,
+                             height: 5,
+                             left: predx,
+                             top: predy});
+                $('body').append(box);
+            
+            });
+        </script>
+    </head>
+    <body>
+
+
+
+    </body>
+</html>
