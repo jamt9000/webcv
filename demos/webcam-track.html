@@ -1,0 +1,379 @@
+<!doctype html>
+<html>
+<head>
+<script src="lbpcascade_frontalface.js"></script>
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
+<script src="../webcv-facedetect.js"></script>
+<script src="jquery.js"></script>
+<script src="dat.gui.min.js"></script>
+
+
+<!-- We use grouping function from objdetect or jsfeat library -->
+<script src="objectdetect.js"></script>
+<script>var jsfeat = {};</script>
+<script src="jsfeat_haar.js"></script>
+
+<!-- THREE.js -->
+<script src="three.min.js"></script>
+<script src="TrackballControls.js"></script>
+<script src="FlyControls.js"></script>
+<script src="droid_sans_regular.typeface.js"></script>
+<script src="THREEx.WindowResize.js"></script>
+
+<!-- Kalman -->
+<script src="../sylvester.js"></script>
+<script src="../kalman.js"></script>
+<script>
+
+window.stop = false;
+window.groupRects = true;
+window.showBest = true;
+window.minNeighbours = 4;
+window.jsfeatGroup = true;
+window.useKalman = true;
+window.usePredictedKalman = false;
+window.headRange = 100;
+
+// 3D
+var w = window.innerWidth;
+var h = window.innerHeight;
+var renderer = new THREE.WebGLRenderer();
+var camera = new THREE.PerspectiveCamera(/*angle=*/45, /*aspect=*/w/h,
+/*near=*/0.1, /*far=*/10000);
+var scene = new THREE.Scene();
+var controls;
+
+window.kal = new Kalman2D();
+
+(function () {
+
+    var vid;
+    var fd;
+    var drawShader;
+    var rectShader;
+    var vidTexture;
+    var canvas;
+    var attrs;
+    var rectBuf;
+    var headx = 0;
+    var heady = 0;
+    var headz = 0;
+
+    function rectangleVertices(rects) {
+        var outArray = [];
+        // Not optimised for speed
+        for (var i=0; i<rects.length; i+=1) {
+            // rect elements = [x,y,w,h]
+            var rect = rects[i];
+            // Correct for y inversion
+            var x=rect[0],
+                y=canvas.height - rect[1],
+                w=rect[2],
+                h=-rect[3];
+            // Top left
+            outArray.push(x);
+            outArray.push(y);
+            // Top right
+            outArray.push(x + w);
+            outArray.push(y);
+            outArray.push(x + w);
+            outArray.push(y);
+            // Bottom right
+            outArray.push(x + w);
+            outArray.push(y + h);
+            outArray.push(x + w);
+            outArray.push(y + h);
+            // Bottom left
+            outArray.push(x);
+            outArray.push(y + h);
+            outArray.push(x);
+            outArray.push(y + h);
+            // Top left
+            outArray.push(x);
+            outArray.push(y);
+        }
+        return outArray;
+    }
+
+    function frameLoop() {
+        var frameLoopStart = new Date();
+        // Do detection
+        var rects = fd.detect(vid);
+
+        if (window.groupRects) {
+            var groupStart = performance.now();
+            if(jsfeatGroup) {
+                rects = jsfeat.haar.group_rectangles(rects, window.minNeighbours);
+            } else {
+                rects = objectdetect.groupRectangles(rects, window.minNeighbours);
+            }
+            console.log("Group time", performance.now() - groupStart);
+        }
+
+        if(window.groupRects && window.showBest) {
+
+            var bestNeighbourCount = 0;
+            var bestRect;
+
+            for (var i=0; i<rects.length; i+=1) {
+                if (rects[i][4] > bestNeighbourCount) {
+                    bestRect = rects[i];
+                    bestNeighbourCount = rects[i][4];
+                }
+            }
+
+            if(bestRect !== undefined) {
+                rects = [bestRect];
+            } else {
+                rects = [];
+            }
+
+        }
+
+
+        /*
+        $('#webcamcontainer div').remove()
+
+        $(rects).each(function(n,e) {
+            var box = $('<div>');
+                box.css({"border": "solid 1px red",
+                    "position": "absolute",
+                    "left": e[0],
+                    "top": e[1],
+                    "width": e[2],
+                    "height": e[3]});
+                $('#webcamcontainer').append(box);
+            });
+        */
+
+
+        // Prepare to draw image
+        gl.useProgram(drawShader);
+        cv.shaders.setAttributes(drawShader, attrs);
+        cv.gpu.uploadToTexture(vid, vidTexture);
+
+        // XXX global pixelStorei set by uploadToTexture
+        // messes up detection, reset here
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
+
+        // Bind to texture unit 0
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, vidTexture);
+
+        // Draw to screen
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.viewport(0, 0, vid.width, vid.height);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        //console.log("nfaces", rects.length);
+
+        // Upload face rectangles to buffer
+        var rectangleVerts = rectangleVertices(rects);
+        gl.bindBuffer(gl.ARRAY_BUFFER, rectBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Uint16Array(rectangleVerts), gl.STATIC_DRAW);
+        gl.useProgram(rectShader);
+        cv.shaders.setAttributes(rectShader, {aPosition: rectBuf});
+        gl.drawArrays(gl.LINES, 0, rectangleVerts.length/2);
+
+        console.log("Frame loop time", new Date() - frameLoopStart);
+
+        // 3D
+        var start = performance.now();
+
+        if(bestRect !== undefined) {
+            headx = bestRect[0] + bestRect[2]/2;
+            heady = bestRect[1] + bestRect[3]/2;
+            headz = bestRect[2];
+        }
+
+        var normx = headx/canvas.width * 2 - 1;
+        var normy = heady/canvas.height * 2 - 1;
+        var normz = headz/canvas.width *2 -1;
+
+        var range = window.headRange;
+        var zrange = 200;
+
+        camera.translateX(-range * normx);
+        camera.translateY(-range * normy);
+        camera.translateZ(-zrange * normz);
+
+        renderer.render(scene, camera);
+
+        camera.translateX(range * normx);
+        camera.translateY(range * normy);
+        camera.translateZ(zrange * normz);
+
+        controls.update(2.0);
+
+        if (!stop) {
+            cv.utils.requestAnimationFrame(frameLoop);
+        }
+    }
+
+    function videoLoaded(stream) {
+        fd = new FaceDetector(lbpcascade_frontalface, canvas.width, canvas.height);
+        window.fd = fd;
+        vid.src = stream;
+
+        frameLoop();
+    }
+
+    $(document).ready(function () {
+        canvas = document.getElementById("glcanvas");
+        vid = document.getElementById("webcamvideo");
+
+        window.cv = WebCV.create(canvas);
+        if (cv.gl === null) {
+            alert("WebGL not supported");
+        }
+        gl = cv.gl;
+        window.gl = gl;
+
+        vidTexture = cv.gpu.blankTexture(vid.width, vid.height);
+
+        drawShader = cv.shaders.getNamedShader("draw2d");
+
+        // A simple rectangle (2 triangles)
+        var vertCoords = new Float32Array([
+            0.0,   0.0,
+            canvas.width, 0.0,
+            0.0,   canvas.height,
+            0.0,   canvas.height,
+            canvas.width, 0.0,
+            canvas.width, canvas.height]);
+
+        var vertBuf = cv.shaders.arrayBuffer(vertCoords);
+
+        // Set up the texture coordinates
+        var texCoords = new Float32Array([
+            0.0, 0.0,
+            1.0, 0.0,
+            0.0, 1.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0]);
+
+        var texBuf = cv.shaders.arrayBuffer(texCoords);
+        rectBuf = cv.shaders.arrayBuffer(new Uint16Array([0]));
+
+        attrs = {
+            aTextureCoord: texBuf,
+            aPosition: vertBuf,
+        };
+
+        cv.shaders.setAttributes(drawShader, attrs);
+
+        var uniforms = {
+            "uResolution": [canvas.width, canvas.height],
+            //"uImageSize": [400, 300]
+        };
+
+        cv.shaders.setUniforms(drawShader, uniforms);
+
+
+        rectShader = cv.shaders.getNamedShader("drawconst");
+        cv.shaders.setUniforms(rectShader, {uResolution: [canvas.width, canvas.height]});
+
+
+
+        // GUI
+        var gui = new dat.GUI();
+        gui.add(window, 'groupRects');
+        gui.add(window, 'showBest');
+        gui.add(window, 'minNeighbours', 0, 50);
+        gui.add(window, 'stop').onChange(frameLoop);
+        gui.add(window, 'jsfeatGroup');
+        gui.add(window, 'headRange',0,1000);
+        gui.add(window, 'useKalman');
+        gui.add(window, 'usePredictedKalman');
+        gui.add(kal, 'noiseScalar', 0,100);
+        gui.add(kal, 'motionNoiseScalar',0,100);
+
+
+        // 3D
+                scene.add(camera);
+                camera.position.z = 300;
+                renderer.setSize(w, h);
+
+                // FLOOR
+                var floorTexture = new THREE.ImageUtils.loadTexture("grass.png");
+                floorTexture.wrapS = THREE.RepeatWrapping;
+                floorTexture.wrapT = THREE.RepeatWrapping;
+                floorTexture.repeat.set(10,10);
+                var floor = new THREE.Mesh(
+                    new THREE.PlaneGeometry(1000,1000,1,1),
+                    new THREE.MeshBasicMaterial({map:floorTexture, side:THREE.DoubleSide})
+                );
+                floor.position.y = -100;
+                floor.rotation.x = Math.PI/2;
+                scene.add(floor);
+
+                // SPHERE
+                var sphere = new THREE.Mesh(
+                    new THREE.SphereGeometry(50,16,16),
+                    new THREE.MeshLambertMaterial({color: 0xCC0000})
+                );
+                scene.add(sphere);
+
+                // TEXT
+                var text = new THREE.Mesh(
+                    new THREE.TextGeometry("Hello", {font: "droid sans", size:18}),
+                    new THREE.MeshLambertMaterial({color: 0xCCff00})
+                );
+                text.position.x += 50;
+                scene.add(text);
+
+                // LIGHT
+                var pointLight = new THREE.PointLight(0xFFFFFF);
+                pointLight.position.x = 10;
+                pointLight.position.y = 50;
+                pointLight.position.z = 130;
+                scene.add(pointLight);
+
+                THREEx.WindowResize(renderer, camera);
+
+
+                $('#threedcontainer').append(renderer.domElement);
+                $('#threedcontainer canvas').css({"height": $(window).height()});
+                //var controls = new THREE.TrackballControls(camera);
+                controls = new THREE.FlyControls(camera, renderer.domElement);
+                controls.dragToLook = true;
+        cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
+
+
+
+
+    });
+
+}());
+
+</script>
+<style>
+    body{
+        margin: 0px;
+    }
+    #threedcontainer canvas{
+    }
+    #threedcontainer canvas{
+        /*width: 100%;
+        height: 100%;*/
+    }
+
+    #glcanvas {
+        position: absolute;
+    }
+</style>
+</head>
+<body>
+<div id="webcamcontainer" style="position:relative; display:none">
+    <video id="webcamvideo" autoplay width="160" height="120"></video>
+</div>
+<canvas id="glcanvas" width="160" height="120"></canvas>
+<div id="threedcontainer"></div>
+
+</body>
+</html>
