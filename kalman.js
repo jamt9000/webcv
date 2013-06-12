@@ -1,9 +1,12 @@
-function kalman_update(estimate, covar, measurement, H, noise) {
+function kalman_update(estimate, covar, measurement, H, measureNoise) {
     // y = z - H*x
     var y = measurement.subtract(H.multiply(estimate));
 
     // residual covar S = H*P*H' + R
-    var S = H.multiply(covar.multiply(H.transpose())).add(noise)
+    var S = H.multiply(covar.multiply(H.transpose())).add(measureNoise)
+    if(S === null) {
+        console.log("S is null");
+    }
 
     // Kalman gain
     // K = P*H'*S^-1
@@ -12,6 +15,9 @@ function kalman_update(estimate, covar, measurement, H, noise) {
         var Sinv = $M([[1./S.elements[0][0]]]);
     } else {
         var Sinv = S.inverse();
+    }
+    if(Sinv === null) {
+        console.log("Cannot invert S");
     }
     var K = covar.multiply(H.transpose().multiply(Sinv));
 
@@ -39,7 +45,7 @@ function kalman_predict(estimate, covar, motion, F, motionNoise) {
 }
 
 function kalman_test() {
-    // Example from Udacity course
+    // Example from Udacty course
     // https://www.udacity.com/course/cs373
 
     var measurements = [1,2,3];
@@ -74,39 +80,59 @@ function kalman_test() {
     }
 }
 
-function Kalman2D(estimate, covar) {
-    if (!(this instanceof Kalman2D)) {
-        throw new Error("Kalman2D must be instantiated with new");
+
+// Create new array with default value
+function replicate (n, x) {
+  var xs = [];
+  for (var i = 0; i < n; ++i) {
+    xs.push (x);
+  }
+  return xs;
+}
+
+// dim = number of measured variables
+//       (assume equal num hidden)
+function Kalman(dim, estimate, covar) {
+    if (!(this instanceof Kalman)) {
+        throw new Error("Kalman must be instantiated with new");
+    }
+    if(dim === undefined) {
+        dim = 2;
     }
 
     // initial estimate
-    this.estimate = estimate || $M([0,0,0,0]);
+    this.estimate = estimate || Matrix.Zero(dim * 2, 1);
     // initial covariance (uncertainty)
-    this.covar = covar || Matrix.I(4).multiply(1000);
-    this.motion = $M([0,0,0,0]);
+    this.covar = covar || Matrix.I(dim*2).multiply(1000);
+    this.motion = Matrix.Zero(dim * 2, 1);
     // Measurement noise
-    this.noiseScalar = 1.0;
-    this.noise = $M([[1,1],[1,1]]);
+    this.measureNoiseScalar = 2.0;
+    this.measureNoise = Matrix.I(dim)
     // Motion noise
     this.motionNoiseScalar = 1.0;
-    this.motionNoise = Matrix.I(4);
+    // Create array with diagonal 0,0,0,..1,1,1...
+    this.motionNoise = Matrix.Diagonal(replicate(dim,0).concat(replicate(dim,1)));
 
     // F (next state) function
-    this.F = $M([[1,0,1,0],
-                [0,1,0,1],
-                [0,0,1,0],
-                [0,0,0,1]]);
+    /* eg for 2D
+      this.F = $M([[1,0,1,0],
+                   [0,1,0,1],
+                   [0,0,1,0],
+                   [0,0,0,1]]);
+                 */
+    var Ftop = Matrix.I(dim).augment(Matrix.I(dim));
+    var Fbottom = Matrix.Zero(dim,dim).augment(Matrix.I(dim));
+    this.F = Ftop.transpose().augment(Fbottom.transpose()).transpose();
+
     // H (measurement) function
-    this.H = $M([[1,0,0,0],
-                [0,1,0,0]]);
+    /* eg for 2D
+       $M([[1,0,0,0],
+          [0,1,0,0]]);*/
+    this.H = Matrix.I(dim).augment(Matrix.Zero(dim,dim));
 }
 
-Kalman2D.prototype.filter = function(measurement) {
-        var z = $M(measurement);
-        var update = kalman_update(this.estimate, this.covar,
-                      z, this.H, this.noise.x(this.noiseScalar));
-        this.estimate = update[0];
-        this.covar = update[1];
+Kalman.prototype.filter = function(measurement) {
+        
 
         var predict = kalman_predict(this.estimate, this.covar,
                 this.motion, this.F, this.motionNoise.x(this.motionNoiseScalar));
@@ -114,13 +140,46 @@ Kalman2D.prototype.filter = function(measurement) {
         this.estimate = predict[0];
         this.covar = predict[1];
 
-        return {update: update, predict: predict};
+        // Only update if have measurement
+        if (!this.missingMeasurement(measurement)) {
+            var z = $M(measurement);
+
+            var update = kalman_update(this.estimate, this.covar,
+                          z, this.H, this.measureNoise.x(this.measureNoiseScalar));
+            this.estimate = update[0];
+            this.covar = update[1];
+        }
+
+        return [this.estimate, this.covar];
 }
+
+Kalman.prototype.predict = function() {
+    return kalman_predict(this.estimate, this.covar,
+                this.motion, this.F, this.motionNoise.x(this.motionNoiseScalar));
+}
+
+Kalman.prototype.update = function(measurement) {
+    var z = $M(measurement);
+    return kalman_update(this.estimate, this.covar,
+                      z, this.H, this.measureNoise.x(this.measureNoiseScalar));
+}
+
+
+// Check if measurement has any undefined values
+Kalman.prototype.missingMeasurement = function(m) {
+    for(var i=0; i<m.length; i+=1) {
+        if (m[i] === undefined) {
+            return true;
+        }
+        return false;
+    }
+}
+
 
 function kalman_test_2d() {
     var measurements = [[1,1],[2,2],[3,3]];
 
-    var kal = new Kalman2D()
+    var kal = new Kalman()
 
 
     for(var i=0; i<measurements.length; i++) {

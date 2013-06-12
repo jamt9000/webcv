@@ -218,6 +218,7 @@
                 var comps = [];
                 for (i = 0; i < class_idx+1; ++i) {
                     comps[i] = [0,0,0,0,0];
+                    comps[i].widths = []
                 }
 
                 // count number of neighbors
@@ -231,18 +232,45 @@
                     comps[idx][1] += r1[1];
                     comps[idx][2] += r1[2];
                     comps[idx][3] += r1[3];
+                    comps[idx].widths.push(r1[3]);
                 }
 
                 var seq2 = [];
                 // calculate average bounding box
                 for(i = 0; i < class_idx; ++i) {
                     n = comps[i][4];
-                    if (n >= min_neighbors)
+                    if (n >= min_neighbors) {
+                        if(window.useIQMean !== undefined && window.useIQMean === true) {
+                        // Find interquartile mean of widths
+                        var widths = comps[i].widths.sort(function(a,b){return a-b});
+                        var nwidths = widths.length;
+
+                        //var median = widths[Math.floor(nwidths/2)];
+
+                        var q2 = Math.floor(0.25 * nwidths);
+                        var q3 = Math.floor(0.75 * nwidths);
+                        var iqmean = 0;
+                        var tot = 0;
+
+                        for(var q=q2; q<q3; q++) {
+                            iqmean += widths[q];
+                            tot += 1;
+                        }
+                        iqmean /= tot;
+                        var w = iqmean;
+                        var h = iqmean;
+                        } else {
+                        var w = (comps[i][2] * 2 + n) / (2 * n);
+                        var h = (comps[i][3] * 2 + n) / (2 * n);
+                        }
+
                         seq2.push([(comps[i][0] * 2 + n) / (2 * n),
                                    (comps[i][1] * 2 + n) / (2 * n),
-                                   (comps[i][2] * 2 + n) / (2 * n),
-                                   (comps[i][3] * 2 + n) / (2 * n),
+                                   w,
+                                   h,
                                    comps[i][4]]);
+
+                    }
                 }
 
                 var result_seq = [];
@@ -252,6 +280,7 @@
                     var r1 = seq2[i];
                     var flag = true;
                     for(j = 0; j < n; ++j) {
+                        continue;
                         var r2 = seq2[j];
                         var distance = (r2.width * 0.25 + 0.5)|0;
 

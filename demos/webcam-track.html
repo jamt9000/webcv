@@ -35,9 +35,10 @@ window.groupRects = true;
 window.showBest = true;
 window.minNeighbours = 4;
 window.jsfeatGroup = true;
-window.useKalman = true;
-window.usePredictedKalman = false;
+window.useKalman = false;
 window.headRange = 100;
+window.zRange = 200;
+window.useIQMean = false;
 
 // 3D
 var w = window.innerWidth;
@@ -48,7 +49,7 @@ var camera = new THREE.PerspectiveCamera(/*angle=*/45, /*aspect=*/w/h,
 var scene = new THREE.Scene();
 var controls;
 
-window.kal = new Kalman2D();
+window.kal = new Kalman(3);
 
 (function () {
 
@@ -60,9 +61,14 @@ window.kal = new Kalman2D();
     var canvas;
     var attrs;
     var rectBuf;
-    var headx = 0;
-    var heady = 0;
-    var headz = 0;
+
+    var prevheadx = 0;
+    var prevheady = 0;
+    var prevheadz = 0;
+
+    // Max num frames to keep tracking if detection lost
+    var maxKeepTracking = 20;
+    var framesLost = 0;
 
     function rectangleVertices(rects) {
         var outArray = [];
@@ -112,7 +118,7 @@ window.kal = new Kalman2D();
             } else {
                 rects = objectdetect.groupRectangles(rects, window.minNeighbours);
             }
-            console.log("Group time", performance.now() - groupStart);
+            //console.log("Group time", performance.now() - groupStart);
         }
 
         if(window.groupRects && window.showBest) {
@@ -179,23 +185,43 @@ window.kal = new Kalman2D();
         cv.shaders.setAttributes(rectShader, {aPosition: rectBuf});
         gl.drawArrays(gl.LINES, 0, rectangleVerts.length/2);
 
-        console.log("Frame loop time", new Date() - frameLoopStart);
+        //console.log("Frame loop time", new Date() - frameLoopStart);
 
         // 3D
         var start = performance.now();
+
+        var headx;
+        var heady;
+        var headz;
 
         if(bestRect !== undefined) {
             headx = bestRect[0] + bestRect[2]/2;
             heady = bestRect[1] + bestRect[3]/2;
             headz = bestRect[2];
+            framesLost = 0;
+        } else {
+            framesLost += 1;
+        }
+        window.best = bestRect
+
+        if (framesLost < maxKeepTracking && useKalman) {
+            var estim = kal.filter([headx, heady, headz]);
+            var newpos = estim[0].col(1).elements;
+            headx = newpos[0];
+            heady = newpos[1];
+            headz = newpos[2];
         }
 
-        var normx = headx/canvas.width * 2 - 1;
-        var normy = heady/canvas.height * 2 - 1;
-        var normz = headz/canvas.width *2 -1;
+        prevheadx = headx === undefined ? prevheadx : headx
+        prevheady = heady === undefined ? prevheady : heady
+        prevheadz = headz === undefined ? prevheadz : headz
+
+        var normx = (headx === undefined ? prevheadx : headx)/canvas.width * 2 - 1;
+        var normy = (heady === undefined ? prevheady : heady)/canvas.height * 2 - 1;
+        var normz = (headz === undefined ? prevheadz : headz)/canvas.width *2 -1;
 
         var range = window.headRange;
-        var zrange = 200;
+        var zrange = window.zRange;
 
         camera.translateX(-range * normx);
         camera.translateY(-range * normy);
@@ -287,11 +313,12 @@ window.kal = new Kalman2D();
         gui.add(window, 'minNeighbours', 0, 50);
         gui.add(window, 'stop').onChange(frameLoop);
         gui.add(window, 'jsfeatGroup');
+        gui.add(window, 'useIQMean');
         gui.add(window, 'headRange',0,1000);
+        gui.add(window, 'zRange',0,1000);
         gui.add(window, 'useKalman');
-        gui.add(window, 'usePredictedKalman');
-        gui.add(kal, 'noiseScalar', 0,100);
-        gui.add(kal, 'motionNoiseScalar',0,100);
+        gui.add(kal, 'measureNoiseScalar', 0,100);
+        gui.add(kal, 'motionNoiseScalar',0.001,4).step(.001);
 
 
         // 3D
@@ -342,7 +369,7 @@ window.kal = new Kalman2D();
                 //var controls = new THREE.TrackballControls(camera);
                 controls = new THREE.FlyControls(camera, renderer.domElement);
                 controls.dragToLook = true;
-        cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
+                cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
 
 
 

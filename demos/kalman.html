@@ -6,18 +6,28 @@
         <script src="jquery.js"></script>
         <script src="dat.gui.min.js"></script>
         <script>
+            var clicking = false;
             $(document).ready(function() {
-                window.kal = new Kalman2D();
+                window.kal = new Kalman(2);
                 gui = new dat.GUI();
-                gui.add(kal, 'noiseScalar', 0,100);
-                gui.add(kal, 'motionNoiseScalar',0,100);
+                gui.add(kal, 'measureNoiseScalar', 0,100).name('R (measurement noise)');
+                gui.add(kal, 'motionNoiseScalar',0,100).name('Q (motion noise)');
             });
 
-            $(document).mouseup(function(e) {
-                var res = kal.filter([e.pageX, e.pageY]);
-                var update = res.update;
-                var pred_estim = res.predict[0].col(1).elements;
-                var cur_estim = res.update[0].col(1).elements;
+            function plot(x, y, colour, marker) {
+                var box = $('<div>');
+                    box.css({position:"absolute",
+                             color: colour,
+                             left: x,
+                             top: y});
+                    box.html(marker);
+                $('body').append(box);
+            }
+
+            function track(e) {
+                var estim = kal.filter([e.pageX, e.pageY]);
+                var pred_estim = kal.predict()[0].col(1).elements;
+                var cur_estim = estim[0].col(1).elements;
 
 
                 var curx = cur_estim[0];
@@ -26,30 +36,57 @@
                 var predx = pred_estim[0];
                 var predy = pred_estim[1];
 
-                console.log('estim=',res.predict[0].inspect())
+                console.log('estim=',estim[0].inspect());
 
-                var box = $('<div>');
-                    box.css({position:"absolute",
-                             background: "blue",
-                             width: 5,
-                             height: 5,
-                             left: curx,
-                             top: cury});
-                $('body').append(box);
+                plot(e.pageX, e.pageY, 'green', 'x');
+                plot(curx, cury, 'blue', '*');
+                plot(predx, predy, 'red', '+');
+            }
 
-                var box = $('<div>');
-                    box.css({position:"absolute",
-                             background: "red",
-                             width: 5,
-                             height: 5,
-                             left: predx,
-                             top: predy});
-                $('body').append(box);
-            
+            $(document).mousedown(function(e) {
+                // menu click
+                if ($(e.target).parents().hasClass('dg')){
+                    return 0;
+                }
+
+                clicking = true;
+            });
+
+            $(document).mouseup(function(e) {
+                clicking = false;
+                // menu click
+                if ($(e.target).parents().hasClass('dg')){
+                    return 0;
+                }
+                track(e);
+
+
+            });
+
+            $(document).mousemove(function(e) {
+                if(clicking === false) {
+                    return 0;
+                }
+                track(e);
             });
         </script>
+        <style>
+            body {
+                font-family: Helvetica, Arial, sans-serif;
+            }
+            body *{
+                -webkit-user-select: none;
+            }
+            div, body{
+                cursor: default;
+            }
+
+        </style>
     </head>
     <body>
+        Measured: <span style="color:green">x</span>
+        Updated estimate: <span style="color:blue">*</span>
+        Next Predicted: <span style="color:red">+</span>
 
 
 
