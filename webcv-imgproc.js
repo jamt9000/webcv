@@ -45,7 +45,7 @@
 
                 var start = new Date();
                 imageData = workContext.getImageData(0, 0, w, h);
-                console.log("Grey getImageData time", new Date() - start);
+                //console.log("Grey getImageData time", new Date() - start);
                 image_u8 = imageData.data;
                 nbytes = w * h;
 
@@ -58,7 +58,7 @@
 
                 for (k = 0; k < nbytes; k += 1) {
                     // Simple greyscale by intensity average
-                    grey_u8[k] = (image_u8[k * 4] + image_u8[k * 4 + 1] + image_u8[k * 4 + 2]) / 3;
+                    grey_u8[k] = (0.299 * image_u8[k * 4] + 0.587 * image_u8[k * 4 + 1] + 0.114 * image_u8[k * 4 + 2]);
                 }
                 
 
