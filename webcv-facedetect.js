@@ -163,12 +163,12 @@ FaceDetector.prototype.detect = function (image) {
     // Convert to grayscale
     var greyStart = new Date();
     var grey = cv.imgproc.imageToGreyArray(image, this.greyImage, this.width, this.height);
-    console.log("Grayscale time", new Date() - greyStart);
+    //console.log("Grayscale time", new Date() - greyStart);
 
     // Create and upload integral image
     var integralStart = new Date();
     cv.imgproc.integralImage(grey, this.width, this.height, this.integral);
-    console.log("Integral time", new Date() - integralStart);
+    //console.log("Integral time", new Date() - integralStart);
     gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, this.integralWidth, this.integralHeight, 0, gl.LUMINANCE,
             gl.FLOAT, this.integral);
@@ -321,10 +321,10 @@ FaceDetector.prototype.detect = function (image) {
         console.log("stageTimes", this.stageTimes);
     }
 
-    console.log("number of draw calls:", ndraws);
+    //console.log("number of draw calls:", ndraws);
     var detectTime = new Date() - detectTimeStart;
     var totalTime = new Date() - totalTimeStart;
-    console.log("Detection time:", detectTime, "Detection+integral:", totalTime);
+    //console.log("Detection time:", detectTime, "Detection+integral:", totalTime);
     window.times.push(detectTime);
     gl.disable(gl.DEPTH_TEST);
     this.rectangles = rectangles;
@@ -383,7 +383,11 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
             defs["LAST_STAGE"] = 1;
         }
 
-        lbpShader = cv.shaders.getNamedShader(vertexShader, fragShader, {"defines": defs});
+        if(window.lbpShaderCache === undefined) {
+            lbpShader = cv.shaders.getNamedShader(vertexShader, fragShader, {"defines": defs});
+        } else {
+            lbpShader = window.lbpShaderCache[s];
+        }
         gl.useProgram(lbpShader);
 
         uniforms = {
@@ -412,6 +416,7 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
 
         shaderArray.push(lbpShader);
     }
+    window.lbpShaderCache = shaderArray;
 
     return shaderArray;
 }
