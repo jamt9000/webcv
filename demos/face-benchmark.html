@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+<script src="lbpcascade_frontalface.js"></script>
+
+
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
+<script src="../webcv-facedetect.js"></script>
+<script src="jquery.js"></script>
+<script>var jsfeat = {};</script>
+<script src="jsfeat_haar.js"></script>
+<script src="folddata.js"></script>
+<style>
+    .webcvimage {
+        border: solid 1px gray;
+    }
+    body {
+        background-image: url(data:image/gif;base64,R0lGODdhEAAQAIABAHFxcf///ywAAAAAEAAQAAACH4RvoauIzNyBSyYaLMDZcv15HAaSIlWiJ5Sya/RWVgEAOw==);
+    }
+</style>
+<script>
+/*global WebCV, cv, gl, alert, $, Float32Array, lbpcascade_frontalface, Uint8Array */
+/*jslint bitwise: true */
+
+var IMAGEDIR = "./facesInTheWild/"
+var folds = []
+var foldi = 0;
+
+var imagei = 0;
+
+var out = {};
+
+
+var i = 0;
+for(f in FOLDDATA) {
+    folds[i] = f;
+    out[f] = ""
+    i++;
+}
+
+$(document).ready(function () {
+    var canvas = document.getElementById("glcanvas");
+
+    window.cv = WebCV.create(canvas);
+    if (cv.gl === null) {
+        alert("WebGL not supported");
+    }
+    window.gl = cv.gl;
+    var filename = IMAGEDIR + FOLDDATA[folds[foldi]][imagei] + ".jpg";
+
+    var img = $('<img/>');
+
+    window.start = function() {
+        img.get(0).src = filename;
+    }
+
+    //img.attr('width', 160);
+    //img.attr('height', 120);
+    window.img = img;
+    
+    window.fd = undefined;
+
+    $(img).load(function(){testDetection(img)});
+
+    $('body #faceimage').append(img);
+
+    });
+    
+    testDetection = function (img) {
+        fd = new FaceDetector(lbpcascade_frontalface, img.width(), img.height());
+        window.rects = fd.detect(img.get(0));
+        window.rects = jsfeat.haar.group_rectangles(rects, 1);
+        console.log(folds[foldi], FOLDDATA[folds[foldi]][imagei]);
+        console.log(rects.length);
+
+        var imname = FOLDDATA[folds[foldi]][imagei]
+        var foldname = folds[foldi]
+        out[foldname] += imname + "\n";
+        out[foldname] += rects.length + "\n";
+            $('#faceimage div').remove()
+            $(window.rects).each(function(n,e) {
+                out[foldname] += e[0] + " ";
+                out[foldname] += e[1] + " ";
+                out[foldname] += e[2] + " ";
+                out[foldname] += e[3] + " ";
+                out[foldname] += e[4] + "\n";
+                var box = $('<div>');
+                    box.css({"border": "solid 1px red",
+                        "position": "absolute",
+                        "left": e[0],
+                        "top": e[1],
+                        "width": e[2],
+                        "height": e[3]});
+                    $('#faceimage').append(box);
+                });
+
+        // Load next image
+        if(imagei + 1 < FOLDDATA[folds[foldi]].length) {
+            imagei++;
+        } else {
+            if(foldi + 1< folds.length) {
+                imagei = 0;
+                foldi++;
+            } else {
+                console.log("Finished");
+                return;
+            }
+        }
+        // Load next image
+        img.get(0).src = IMAGEDIR + FOLDDATA[folds[foldi]][imagei] + ".jpg";
+    }
+
+function save() {
+ for(var i=0; i<folds.length; i++) {
+     var link = $('<a>');
+     link.attr('href', "data:text;charset=utf-8,"+encodeURIComponent(out[folds[i]]));
+     link.attr('download', folds[i] + "-out.txt");
+     link.html(folds[i]);
+     $('body').append(link);
+     $('body').append('<br>');
+ }
+     $('body').append('<br>');
+
+}
+
+</script>
+</head>
+<body>
+<canvas id="glcanvas" width="1" height="1"></canvas>
+
+<div id="faceimage" style="position:relative">
+
+</div>
+
+</body>
+</html>
