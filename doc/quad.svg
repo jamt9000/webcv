@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg4625"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="quad.svg"
+   inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+   inkscape:export-xdpi="131.10468"
+   inkscape:export-ydpi="131.10468">
+  <defs
+     id="defs4627">
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;">
+      <path
+         id="path3903"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lend"
+       style="overflow:visible;">
+      <path
+         id="path3897"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-9"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3903-2"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2.8"
+     inkscape:cx="337.91123"
+     inkscape:cy="838.57706"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1855"
+     inkscape:window-height="1056"
+     inkscape:window-x="65"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4635" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata4630">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#ffaaaa;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 270,227.36218 170,0 -170,-105 z"
+       id="path5230"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <path
+       style="fill:#afdde9;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 270,122.36218 170,105 0,-105 z"
+       id="path5232"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <rect
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect4633"
+       width="170"
+       height="105"
+       x="270"
+       y="122.36218"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 270,122.36218 170,105"
+       id="path4637"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <text
+       xml:space="preserve"
+       style="font-size:13.80761147px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="260"
+       y="242.36218"
+       id="text5147"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan5149"
+         x="260"
+         y="242.36218">0,0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:13.80761147px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="420"
+       y="242.36218"
+       id="text5147-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan5149-5"
+         x="420"
+         y="242.36218">width,0</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:13.80761147px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="400"
+       y="117.36218"
+       id="text5147-7-7"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan5149-5-2"
+         x="400"
+         y="117.36218">width,height</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:13.80761147px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="245"
+       y="117.36218"
+       id="text5147-7-7-2"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan5149-5-2-6"
+         x="245"
+         y="117.36218">0,height</tspan></text>
+    <path
+       style="fill:#550000;stroke:#550000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="m 275,222.36218 145,0"
+       id="path5234"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <path
+       style="fill:none;stroke:#550000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow1Mend)"
+       d="m 410,217.36218 -135,-85"
+       id="path5236"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <text
+       xml:space="preserve"
+       style="font-size:11.9532938px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="290"
+       y="192.36218"
+       id="text5976"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan5978"
+         x="290"
+         y="192.36218">triangle 1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:11.9532938px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="360"
+       y="152.36218"
+       id="text5976-3"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan5978-2"
+         x="360"
+         y="152.36218">triangle 2</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:8.14028168px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="275"
+       y="217.36218"
+       id="text6001"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan6003"
+         x="275"
+         y="217.36218">start</tspan></text>
+    <path
+       style="fill:none;stroke:#002255;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow1Mend)"
+       d="M 289.40377,127.07937 435,217.36218"
+       id="path5236-2"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <path
+       style="fill:none;stroke:#002255;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-mid:none;marker-end:url(#Arrow1Mend-9)"
+       d="m 435,207.36218 0,-80"
+       id="path6029"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578" />
+    <text
+       xml:space="preserve"
+       style="font-size:9.08156776px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="415"
+       y="132.36218"
+       id="text6403"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+       inkscape:export-xdpi="112.2578"
+       inkscape:export-ydpi="112.2578"><tspan
+         sodipodi:role="line"
+         id="tspan6405"
+         x="415"
+         y="132.36218">end</tspan></text>
+  </g>
+</svg>

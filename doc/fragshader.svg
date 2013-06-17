@@ -1,0 +1,523 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="686.1875"
+   height="495.65625"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="fragshader.pdf">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend"
+       style="overflow:visible">
+      <path
+         id="path3862"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-8"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3862-0"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend-4"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3862-7"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="123.74425"
+     inkscape:cy="503.77677"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1855"
+     inkscape:window-height="1056"
+     inkscape:window-x="65"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-17.25,-331.15625)">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect4985-5"
+       width="194.14154"
+       height="145.03169"
+       x="425.21158"
+       y="681.27142"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:31.0270443px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="441.15057"
+       y="811.28851"
+       id="text4989-3"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"
+       transform="scale(0.99980743,1.0001926)"><tspan
+         sodipodi:role="line"
+         x="441.15057"
+         y="811.28851"
+         id="tspan5448">Drawbuffer</tspan></text>
+    <rect
+       style="fill:#6600ff;fill-opacity:1;stroke:#000000;stroke-width:1"
+       id="rect2985-9-7-4-8"
+       width="16.342722"
+       height="16.349018"
+       x="505.0416"
+       y="754.43085"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="fill:#ffaaaa;fill-opacity:1;stroke:#002255;stroke-width:0.99999994;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3077-7"
+       width="459.00455"
+       height="287.83359"
+       x="243.91852"
+       y="385.70291"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:30.48788071px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="255.43965"
+       y="417.44516"
+       id="text2989-3"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0007354,0.9992651)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"><tspan
+         sodipodi:role="line"
+         id="tspan2991-8"
+         x="255.43965"
+         y="417.44516">Fragment Shader</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:12.82693386px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="261.63712"
+       y="418.82907"
+       id="text2993-6"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0007354,0.9992651)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="418.82907"
+         id="tspan3023-6"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold" /><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="434.86273"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4737">varying vec2 vTextureCoord;</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="450.89639"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4893">uniform sampler2D uImageTexture;</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="466.93008"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4743">uniform mat3 uKernel; ...</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="482.96375"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4761">void main() { ...      </tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="498.99741"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4765">    for(int c=0; c&lt;3; c++){</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="515.03107"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4767">      for(int r=0; r&lt;3; r++){</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="531.06476"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4771">        vec2 offs = vec2(c-1,r-1) / uImageSize;</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="547.09839"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4773">        neighbourSum += uKernel[c][r] *</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="563.13208"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4835">                        texture2D(uImageTexture, </tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="579.16577"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4833">                                  vTextureCoord + offs);</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="595.1994"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4775">        totalSum += uKernel[c][r];</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="611.23309"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4777">      }</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="627.26672"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4781">    }</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="643.30042"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4783">    gl_FragColor = neighbourSum / totalSum;</tspan><tspan
+         sodipodi:role="line"
+         x="261.63712"
+         y="659.33411"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4785">}</tspan></text>
+    <rect
+       style="fill:#ffb380;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect4311-9"
+       width="159.56432"
+       height="104.97018"
+       x="33.056282"
+       y="450.4039"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:30.34452057px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="42.789169"
+       y="478.05554"
+       id="text4315-4"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"
+       transform="scale(0.99980742,1.0001926)"><tspan
+         sodipodi:role="line"
+         id="tspan4317-0"
+         x="42.789169"
+         y="478.05554">Uniforms</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="M 361.12036,655.4128 505.9573,758.59923"
+       id="path4299-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:16.79024506px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="293.50293"
+       y="710.72028"
+       id="text4301-9"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"
+       transform="scale(0.99980743,1.0001926)"><tspan
+         sodipodi:role="line"
+         id="tspan4303-6"
+         x="293.50293"
+         y="710.72028"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">gl_FragColor</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 188.478,472.62156 68.07561,-15.13375"
+       id="path4895"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="fill:#aaffaa;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect2987-5"
+       width="150.34312"
+       height="67.555847"
+       x="17.754333"
+       y="331.64633"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:24.15587425px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="40.074799"
+       y="356.03595"
+       id="text2989-36"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0007354,0.9992651)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"><tspan
+         sodipodi:role="line"
+         id="tspan2991-4"
+         x="40.074799"
+         y="356.03595">Vertex</tspan><tspan
+         sodipodi:role="line"
+         x="40.074799"
+         y="386.2308"
+         id="tspan4936">Shader</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 166.18392,358.36435 87.03797,72.13242"
+       id="path3085-5"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:21.36943054px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="179.58698"
+       y="357.37927"
+       id="text4513-4"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"
+       transform="scale(0.99980742,1.0001926)"><tspan
+         sodipodi:role="line"
+         id="tspan4515-5"
+         x="179.58698"
+         y="357.37927">varyings</tspan></text>
+    <rect
+       style="fill:#ddafe9;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect4985"
+       width="194.14154"
+       height="145.03169"
+       x="21.170889"
+       y="574.65198"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:36.35584259px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="45.117794"
+       y="612.86469"
+       id="text4989"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"
+       transform="scale(0.99980743,1.0001926)"><tspan
+         sodipodi:role="line"
+         id="tspan4991"
+         x="45.117794"
+         y="612.86469">Texture</tspan></text>
+    <rect
+       style="fill:#440055;fill-opacity:1;stroke:#000000;stroke-width:1"
+       id="rect2985-4"
+       width="16.342722"
+       height="16.349018"
+       x="84.658257"
+       y="631.46234"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="fill:#ccaaff;fill-opacity:1;stroke:#000000;stroke-width:1"
+       id="rect2985-9-60"
+       width="16.342722"
+       height="16.349018"
+       x="101.00091"
+       y="631.46234"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="color:#000000;fill:#440055;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect2985-9-6-1"
+       width="16.342722"
+       height="16.349018"
+       x="117.34368"
+       y="631.46234"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="color:#000000;fill:#440055;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect2985-7-5"
+       width="16.342722"
+       height="16.349018"
+       x="84.658257"
+       y="647.81134"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="color:#000000;fill:#ccaaff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect2985-9-7-4"
+       width="16.342722"
+       height="16.349018"
+       x="101.00091"
+       y="647.81134"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="color:#000000;fill:#440055;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect2985-9-6-5-3"
+       width="16.342722"
+       height="16.349018"
+       x="117.34368"
+       y="647.81134"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="color:#000000;fill:#440055;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect2985-97-5"
+       width="16.342722"
+       height="16.349018"
+       x="84.658257"
+       y="664.16034"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="color:#000000;fill:#ccaaff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect2985-9-0-6"
+       width="16.342722"
+       height="16.349018"
+       x="101.00091"
+       y="664.16034"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <rect
+       style="color:#000000;fill:#440055;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect2985-9-6-50-1"
+       width="16.342722"
+       height="16.349018"
+       x="117.34368"
+       y="664.16034"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248" />
+    <text
+       xml:space="preserve"
+       style="font-size:15.72616386px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="44.771458"
+       y="502.12534"
+       id="text5376"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"
+       transform="scale(0.99980742,1.0001926)"><tspan
+         sodipodi:role="line"
+         id="tspan5378"
+         x="44.771458"
+         y="502.12534">uKernel=[1,1,1,</tspan><tspan
+         sodipodi:role="line"
+         x="44.771458"
+         y="521.78302"
+         id="tspan5380">                1,1,1,</tspan><tspan
+         sodipodi:role="line"
+         x="44.771458"
+         y="541.44073"
+         id="tspan5382">                1,1,1]</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:none"
+       d="M 107.04329,655.78086 C 230.79988,573.24462 331.27728,579.1693 437.10483,564.76341"
+       id="path5452"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/james/Code/webcv/doc/fragmentshader.png"
+       inkscape:export-xdpi="72.257248"
+       inkscape:export-ydpi="72.257248"
+       sodipodi:nodetypes="cc" />
+    <text
+       xml:space="preserve"
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="630.71429"
+       y="138.07646"
+       id="text6179"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan6181"
+         x="630.71429"
+         y="138.07646" /></text>
+  </g>
+</svg>

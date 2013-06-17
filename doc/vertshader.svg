@@ -1,0 +1,426 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="726.38818"
+   height="289.875"
+   id="svg6526"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="vertshader.pdf">
+  <defs
+     id="defs6528">
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Lend"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3862"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker6477"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path6479"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.8,0,0,-0.8,-10,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="445.57313"
+     inkscape:cy="158.18105"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="843"
+     inkscape:window-height="535"
+     inkscape:window-x="431"
+     inkscape:window-y="155"
+     inkscape:window-maximized="0"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata6531">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-13.40625,-16.59375)">
+    <rect
+       style="fill:#d7f4ee;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect4313"
+       width="211.64203"
+       height="103.4107"
+       x="13.9025"
+       y="19.357626"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <rect
+       style="fill:#aaffaa;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect2987"
+       width="380.86618"
+       height="172.23155"
+       x="274.19327"
+       y="17.078541"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <text
+       xml:space="preserve"
+       style="font-size:27.83915138px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="280.0358"
+       y="46.789528"
+       id="text2989"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0007748,0.99922582)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"><tspan
+         sodipodi:role="line"
+         id="tspan2991"
+         x="280.0358"
+         y="46.789528">Vertex Shader</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:11.71255398px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="285.32043"
+       y="24.130341"
+       id="text2993"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0007748,0.99922582)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"><tspan
+         sodipodi:role="line"
+         id="tspan2995"
+         x="285.32043"
+         y="24.130341"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New" /><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="38.771034"
+         id="tspan2999"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold" /><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="53.411724"
+         id="tspan3001"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold" /><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="68.052422"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4309">attribute vec2 aVertCoord;</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="82.693108"
+         id="tspan3005"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">attribute vec2 aTextureCoord;</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="97.333801"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold"
+         id="tspan4509">uniform vec2 uResolution;</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="111.97449"
+         id="tspan3007"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">varying vec2 vTextureCoord;</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="126.61519"
+         id="tspan3013"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">void main() {</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="141.25587"
+         id="tspan3017"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">   gl_Position = normalise(aVertCoord, uResolution);</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="155.89658"
+         id="tspan3019"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">   vTextureCoord = aTextureCoord;</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="170.53726"
+         id="tspan3021"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">}</tspan><tspan
+         sodipodi:role="line"
+         x="285.32043"
+         y="185.17796"
+         id="tspan3023"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold" /></text>
+    <rect
+       style="fill:#aaeeff;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3039"
+       width="183.92285"
+       height="16.950382"
+       x="27.222799"
+       y="52.774319"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <text
+       xml:space="preserve"
+       style="font-size:14.47654438px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="37.775818"
+       y="67.002495"
+       id="text3041"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0016315,0.99837111)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"><tspan
+         sodipodi:role="line"
+         id="tspan3043"
+         x="37.775818"
+         y="67.002495">aVertCoord[12]</tspan></text>
+    <rect
+       style="fill:#aaeeff;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3039-8"
+       width="184.68907"
+       height="17.023844"
+       x="26.442133"
+       y="77.747475"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <text
+       xml:space="preserve"
+       style="font-size:14.47654438px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="34.732243"
+       y="92.089996"
+       id="text3041-6"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0016315,0.99837111)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"><tspan
+         sodipodi:role="line"
+         id="tspan3043-3"
+         x="34.732243"
+         y="92.089996">aTextureCoord[12]</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-size:24.36091232px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="48.414886"
+       y="42.383293"
+       id="text3069"
+       sodipodi:linespacing="125%"
+       transform="scale(1.0016315,0.99837111)"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"><tspan
+         sodipodi:role="line"
+         id="tspan3071"
+         x="48.414886"
+         y="42.383293">Buffers</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 210.97757,62.036035 70.77696,2.890438"
+       id="path3073"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 210.97757,87.957902 73.4912,-7.619324"
+       id="path3075"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <rect
+       style="fill:#ffaaaa;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect3077"
+       width="108.26305"
+       height="50.483959"
+       x="329.73758"
+       y="255.49228"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <text
+       xml:space="preserve"
+       style="font-size:16.14792252px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="339.19086"
+       y="272.16135"
+       id="text3079"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"
+       transform="scale(0.99984672,1.0001533)"><tspan
+         sodipodi:role="line"
+         id="tspan3081"
+         x="339.19086"
+         y="272.16135">Fragment</tspan><tspan
+         sodipodi:role="line"
+         x="339.19086"
+         y="292.34625"
+         id="tspan3083">Shader</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 364.7399,162.66695 2.35028,91.19685"
+       id="path3085"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Lend)"
+       d="m 654.20112,137.26213 54.60191,69.90143"
+       id="path4299"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <text
+       xml:space="preserve"
+       style="font-size:15.33154011px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="639.17487"
+       y="223.99875"
+       id="text4301"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"
+       transform="scale(0.99984672,1.0001533)"><tspan
+         sodipodi:role="line"
+         id="tspan4303"
+         x="639.17487"
+         y="223.99875"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:Courier New;-inkscape-font-specification:Courier New Bold">gl_Position</tspan></text>
+    <rect
+       style="fill:#ffb380;fill-opacity:1;stroke:#002255;stroke-width:1;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="rect4311"
+       width="145.7074"
+       height="38.2701"
+       x="83.907181"
+       y="186.76895"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <text
+       xml:space="preserve"
+       style="font-size:27.70824623px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="92.801537"
+       y="212.06883"
+       id="text4315"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"
+       transform="scale(0.99984672,1.0001533)"><tspan
+         sodipodi:role="line"
+         id="tspan4317"
+         x="92.801537"
+         y="212.06883">Uniforms</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 228.80059,198.49428 280.89708,94.269316"
+       id="path4505"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 229.6146,207.45112 99.32299,67.02454"
+       id="path4511"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172" />
+    <text
+       xml:space="preserve"
+       style="font-size:19.51289558px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="386.73996"
+       y="215.28624"
+       id="text4513"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172"
+       transform="scale(0.99984672,1.0001533)"><tspan
+         sodipodi:role="line"
+         id="tspan4515"
+         x="386.73996"
+         y="215.28624">varyings</tspan></text>
+    <g
+       id="g6175"
+       transform="matrix(0.77753658,0,0,0.77777499,119.93583,113.12263)"
+       style="stroke:#666666;stroke-width:0.8773579"
+       inkscape:export-filename="/home/james/Code/webcv/doc/vertexshader.png"
+       inkscape:export-xdpi="72.159172"
+       inkscape:export-ydpi="72.159172">
+      <rect
+         inkscape:export-ydpi="112.2578"
+         inkscape:export-xdpi="112.2578"
+         inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+         y="121.72147"
+         x="602.23926"
+         height="114.99999"
+         width="157.14285"
+         id="rect4633"
+         style="fill:none;stroke:#666666;stroke-width:1.28591609;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+      <path
+         inkscape:export-ydpi="112.2578"
+         inkscape:export-xdpi="112.2578"
+         inkscape:export-filename="/home/james/Code/webcv/doc/quad.png"
+         sodipodi:nodetypes="cc"
+         inkscape:connector-curvature="0"
+         id="path4637"
+         d="m 602.23926,121.72149 157.14289,115"
+         style="fill:none;stroke:#666666;stroke-width:1.28591609px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+  </g>
+</svg>
