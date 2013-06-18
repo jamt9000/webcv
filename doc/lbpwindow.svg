@@ -10,17 +10,31 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="400"
-   height="400"
+   width="240"
+   height="220.8931"
    id="svg3034"
    version="1.1"
    inkscape:version="0.48.3.1 r9886"
-   sodipodi:docname="lbpwindow.svg"
+   sodipodi:docname="lbpwindow.pdf"
    inkscape:export-filename="/home/james/Code/webcv/doc/lbpwindow.png"
    inkscape:export-xdpi="90"
    inkscape:export-ydpi="90">
   <defs
      id="defs3036">
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend"
+       style="overflow:visible">
+      <path
+         id="path4012"
+         d="M 0,0 5,-5 -12.5,0 5,5 0,0 z"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
     <linearGradient
        inkscape:collect="always"
        id="linearGradient4835">
@@ -56,7 +70,7 @@
        fx="-100.53452"
        fy="1093.6244"
        r="267.5"
-       gradientTransform="matrix(0,1.1962617,-1.3556692,0,1509.9514,142.62778)"
+       gradientTransform="matrix(0,0.75942335,-0.87527202,0,973.21314,67.763051)"
        gradientUnits="userSpaceOnUse" />
   </defs>
   <sodipodi:namedview
@@ -66,13 +80,13 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="195.79836"
-     inkscape:cy="171.60487"
+     inkscape:zoom="1.4"
+     inkscape:cx="192.11189"
+     inkscape:cy="68.481891"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="true"
-     inkscape:snap-global="true"
+     inkscape:snap-global="false"
      inkscape:window-width="1855"
      inkscape:window-height="1056"
      inkscape:window-x="65"
@@ -91,8 +105,8 @@
        snapvisiblegridlinesonly="true"
        spacingx="10px"
        spacingy="10px"
-       originx="2.5px"
-       originy="-692.54968px" />
+       originx="-9.65625px"
+       originy="-862.33092px" />
   </sodipodi:namedview>
   <metadata
      id="metadata3039">
@@ -110,34 +124,34 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(2.5,40.18751)">
+     transform="translate(-9.65625,30.861844)">
     <rect
-       y="12.36217"
-       x="20"
-       height="334.95398"
-       width="390"
+       y="-14.933522"
+       x="11.243387"
+       height="212.63898"
+       width="251.79893"
        id="rect2985-9"
-       style="fill:#ffffff;fill-rule:evenodd;stroke:url(#radialGradient4841);stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
+       style="fill:#ffffff;fill-rule:evenodd;stroke:url(#radialGradient4841);stroke-width:3.20105767;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none" />
     <rect
-       style="fill:#ffffff;stroke:#800000;stroke-width:4;stroke-miterlimit:4;stroke-dasharray:none"
+       style="fill:#ffffff;stroke:#800000;stroke-width:2.43037987;stroke-miterlimit:4;stroke-dasharray:none"
        id="rect3042"
-       width="196"
-       height="196"
-       x="70"
-       y="60.362167" />
+       width="119.08861"
+       height="119.08861"
+       x="41.541592"
+       y="14.14949" />
     <text
        xml:space="preserve"
-       style="font-size:32.51753616px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#800000;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
-       x="70"
-       y="52.362167"
+       style="font-size:19.75749016px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#800000;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
+       x="59.769436"
+       y="155.11153"
        id="text3812"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan3814"
-         x="70"
-         y="52.362167">Window</tspan></text>
+         x="59.769436"
+         y="155.11153">Window</tspan></text>
     <g
-       transform="matrix(0.83333333,0,0,1.6666666,140,-73.574795)"
+       transform="matrix(0.50632911,0,0,1.0126582,84.073237,-67.22993)"
        id="g3934-3">
       <g
          id="g3945-8">
@@ -156,7 +170,7 @@
       </g>
     </g>
     <g
-       transform="translate(240,-2.000013)"
+       transform="matrix(0.60759494,0,0,0.60759494,144.83273,-23.741454)"
        id="g3934-5">
       <g
          id="g3945-5">
@@ -175,7 +189,7 @@
       </g>
     </g>
     <g
-       transform="matrix(2,0,0,0.50000005,250,164.18108)"
+       transform="matrix(1.2151899,0,0,0.3037975,150.90868,77.229337)"
        id="g3934-32">
       <g
          id="g3945-2">
@@ -195,29 +209,29 @@
     </g>
     <text
        xml:space="preserve"
-       style="font-size:18.11974907px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#112b00;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
-       x="151.85207"
-       y="167.99643"
+       style="font-size:11.00946808px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#112b00;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
+       x="91.274498"
+       y="79.547523"
        id="text4090"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4092"
-         x="151.85207"
-         y="167.99643">LBP rectangle</tspan></text>
+         x="91.274498"
+         y="79.547523">LBP rectangle</tspan></text>
     <text
        xml:space="preserve"
-       style="font-size:16.78621864px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#44aa00;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
-       x="160"
-       y="80.362167"
+       style="font-size:10.19922161px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#44aa00;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
+       x="96.225143"
+       y="26.301392"
        id="text4094"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4096"
-         x="160"
-         y="80.362167">block</tspan></text>
+         x="96.225143"
+         y="26.301392">block</tspan></text>
     <g
        id="g4847"
-       transform="matrix(0.96288523,0,0,0.96288523,6.3002322,2.9738209)">
+       transform="matrix(0.58504419,0,0,0.58504419,2.8379352,-20.719378)">
       <path
          style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#44aa00;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.69999999;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
          d="m 170.25,80.125 -0.5,0.5 22.875,22.84375 0.46875,-0.5 L 170.25,80.125 z"
@@ -231,14 +245,39 @@
     </g>
     <text
        xml:space="preserve"
-       style="font-size:26.4307251px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000080;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
-       x="20"
-       y="6.3621702"
+       style="font-size:16.05917549px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000080;fill-opacity:1;stroke:none;font-family:Droid Sans;-inkscape-font-specification:Droid Sans"
+       x="11.161845"
+       y="-18.660635"
        id="text4831"
        sodipodi:linespacing="125%"><tspan
          sodipodi:role="line"
          id="tspan4833"
-         x="20"
-         y="6.3621702">Texture (integral image)</tspan></text>
+         x="11.161845"
+         y="-18.660635">Texture (integral image)</tspan></text>
+    <rect
+       style="color:#000000;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:#000000;stroke-width:1.21518993;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="rect3035"
+       width="6.0759492"
+       height="6.0759492"
+       x="40.326401"
+       y="12.934303" />
+    <text
+       xml:space="preserve"
+       style="font-size:13.0852232px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="23.313744"
+       y="3.2127833"
+       id="text3037"
+       sodipodi:linespacing="125%"><tspan
+         sodipodi:role="line"
+         id="tspan3039"
+         x="23.313744"
+         y="3.2127833"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Droid Sans;-inkscape-font-specification:Droid Sans">Fragment Position</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.60759497px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="M 29.389693,3.212784 41.541591,15.364682"
+       id="path3041"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
   </g>
 </svg>

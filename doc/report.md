@@ -40,8 +40,6 @@ have taken too much, since the area top-left of B and D overlap. Therefore we
 have to add A to get the right value.  The sum of the area in the rectangle is
 then C-D-B+A. \label{integralcalc}](./integralcalc.pdf)
 
-
-
 ![Types of Haar Features (within larger windows) (Wikipedia/Public Domain) \label{haar}](./haar.png)
 
 Accounting for all variations in position and size (x,y,w,h) within the window
@@ -83,7 +81,7 @@ library, which provides several pre-trained cascades in an XML serialisation
 format. Many of the javascript face detection solutions are based on OpenCV's
 code.
 
-Lienhart @LienhartMaydt02 proposes an extra set of "tilted" Haar features at
+@LienhartMaydt02 propose an extra set of "tilted" Haar features at
 45 degrees, computed thanks to a rotated integral image, in order to better
 represent distinctive characteristics such as slanted edges which would
 otherwise be missed.
@@ -307,9 +305,10 @@ pixel location it consists of looking up the values within some surrounding
 neighbourhood, using them to determine what result to output.
 
 We lean on the work of @Tavares2011 in using WebGL for image processing, and
-draw on @Harris in order to explain computational concepts in terms of OpenGL,
-in particular we make use of the analogies presented between CPU techniques
-and their GPU counterparts. We shall also make use of a JavaScript library,
+the explanations of the WebGL API by @Tavares and @ZhenyaoMo2012. We draw on
+@Harris in order to explain computational concepts in terms of OpenGL, in
+particular we make use of the analogies presented between CPU techniques and
+their GPU counterparts. We shall also make reference to a JavaScript library,
 called WebCV, created by the author for the purpose of abstracting away some
 of the complications of WebGL, providing utility functions which facilitate
 tasks commonly needed for general purpose computation and computer vision
@@ -772,9 +771,14 @@ many windows, whose results are independent of each other.
 The main strategy for the initial implementation of face detection in WebGL is
 to offload the computation of each stage, involving the lookup operations on
 the integral image, the calculation of the Local Binary Pattern values, and
-the subsequent window evaluation to the fragment shader.  This allows the
-"sliding window" to be parallelised so that we are evaluating multiple window
-positions at once.
+the subsequent window evaluation (our "inner loop") to the fragment shader.
+This allows the "sliding window" to be parallelised so that we are evaluating
+multiple window positions at once. We can consider our window to be "anchored"
+to the fragment position in the top left (Figure \ref{lbpwindow})
+
+![Window for a stage with 3 weak classifiers, processed by the fragment
+shader. The corners of the blocks are the positions which must be fetched from
+the integral image texture. \label{lbpwindow}](./lbpwindow.pdf)
 
 Since the classification of a window requires the evaluation of a number of
 stages, one choice we must make is whether to evaluate all these stages at
@@ -818,59 +822,98 @@ upon startup so not too important for most applications.
 
 Each stage writes out a texture with a white pixel for each window accepted, a
 black pixel otherwise. The texture from the previous stage is used as an input
-to the next stage, to avoid computing windows which have already been
-rejected. An additional advantage of splitting the computation into multiple
-draw calls is that we can inspect these intermediate textures in order to
-debug our code.
+to the next stage, using the framebuffer "ping pong" technique, to avoid
+computing windows which have already been rejected. An additional advantage of
+splitting the computation into multiple draw calls is that we can inspect
+these intermediate textures in order to debug our code.
 
-For each stage in the face detection cascade we have to
-compute the Local Binary Pattern value for various weak classifiers within the window.
-Depending on which pattern we get for a rectangle, it may either contribute a
-positive or a negative weighting towards the window being a face. Summing the
-weights contributed by all the rectangles and comparing against an overall
-threshold for the stage, we determine whether the window should be rejected
-outright or subjected to further scrutiny in later stages.  Computing each
-Local Binary Pattern rectangle requires 16 texture lookups, since we have to
-subdivide the rectangle into 3x3, giving 9 blocks, and compare the intensity
-of the centre block with the 8 surrounding blocks. Using the integral image
-technique, finding the intensity of a block of any area requires just four
-texture lookups.
+The tasks we must do in our fragment shader are:
 
-![Window for a stage with 3 rectangles](./lbpwindow.png)
+1. Check if the window has been rejected
 
+2. Compute the Local Binary Pattern value for the various weak classifiers within the window 
 
-The data on which Local Binary Patterns should be considered positive or
-negative is accessed from the shader by using a grayscale texture as a lookup
-table. There is one row for each stage in the cascade, so the height is the
-number of stages, and for each LBP rectangle we have 256 possible patterns. A
-black pixel is used to indicate a positive pattern, a white pixel a negative
-pattern. The width of the texture is then 256 x the maximum number of
-rectangles.  For the default cascade used, we have 20 stages and a maximum of
-10 LBP rectangles, giving a $10\times2560$ texture. This differs from the more compact
-representation used by OpenCV, which packs the data for one rectangle into 256
-bits (8 32-bit ints) per rectangle but is necessary because the GL shader
-language does not support the bitwise operations needed to extract the
-individual bits (since numbers may in fact be implemented as floating point in
-hardware), nor the range needed for 32-bit integers.
+3. Depending on which pattern we get, determine if we have a positive
+  or a negative weighting towards the window being a face
+
+4. Sum the weights contributed by all the classifiers, and compare against an overall threshold
+  for the stage
+
+5. Write out whether the window passes as the fragment colour
+
+Some of these tasks are straightforward, however one complication is that we
+have no bitwise operators in the fragment shader (since GPUs typically work
+using floating point hardware for all numbers, what we might like to think of
+as a bit pattern has no relation to the value stored in memory). This means
+that we cannot compute the Local Binary Pattern value (a byte where each bit
+indicates if an outer block is greater than the centre) in the natural way.
+However we can get around this by forgetting about bits and thinking purely
+arithmetically, in powers of two, which gives us the following formula.
+
+~~~~ {.C}
+
+lbp = (int(r0 >= c) * 128)
+      + (int(r1 >= c) * 64)
+      + (int(r2 >= c) * 32)
+      + (int(r3 >= c) * 16)
+      + (int(r4 >= c) * 8)
+      + (int(r5 >= c) * 4);
+
+~~~~
+
+The lack of bitwise operators also means we cannot use a bitvector to specify
+which Local Binary Patterns should be considered positive or negative.
+Instead, this data is accessed from the shader by using a grayscale texture as
+a lookup table (Figure \ref{lbpmap}). There is one row for each stage in the
+cascade, so the height is the number of stages, and for each LBP rectangle we
+have 256 possible patterns. A black pixel is used to indicate a positive
+pattern, a white pixel a negative pattern (OpenCV's strange convention). The
+width of the texture is then 256 $\times$ the maximum number of weak
+classifiers.  For the default cascade used, we have 20 stages and a maximum of
+10 LBP rectangles, giving a $2560\times20$ texture. This differs from the more
+compact representation used by the OpenCV and JavaScript implementation which
+packs the data for one rectangle into 256 bits (8 32-bit ints) per rectangle,
+since we use up an entire byte for each possible pattern, but the texture only
+needs to be uploaded to the GPU once and is fairly cheap to lookup.
+
+Figure \ref{stagefrag} gives an overview of the main components of our shader
+so far, labelled with the five tasks above.
+
+![A (heavily resized) version of our lookup texture for Local Binary Pattern
+values, with a row for each stage, and 256 horizontal pixels for each weak
+classifier, where a black pixel is positive and white is negative. This gives
+a nice visualisation of how the number of weak classifiers increases as we get
+to later stages. \label{lbpmap}](./lbpmap.pdf)
+
+![Diagram and pseudocode of our Stage fragment shader \label{stagefrag}](./stagefrag.pdf)
 
 
 Scaling
 --------
 
 On top of this loop over stages, we also need to consider different scales, to
-be able to detect faces of different sizes in the image. This is done by
-setting a scale factor, such as 1.2, which we successively multiply the window
-size and rectangle offsets by. We run the detection for each scale, starting
-from the base 24x24 pixel window size, until some maximum where the window
-would be too big to fit in the image.
+be able to detect faces of different sizes in the image. There are two
+potential ways to implement scaling of our classifier. The most obvious way is
+simply to rescale our image, and this is the approach used by OpenCV. However
+this would be expensive since it requires recomputation of the integral image,
+which is done in JavaScript, so we would have to upload many images to the
+GPU. The second way is to scale the classifier itself. This is done by setting
+a scaling factor (we use 1.2) which we successively multiply the window size
+and rectangle offsets by. We run the detection for each scale, starting from
+the base 24x24 pixel window size, until some maximum where the window would be
+too big to fit in the image. However one problem with this approach, mentioned
+by @Obukhov2011, is that when we are not scaling by an integer amount, our
+features are no longer aligned with pixel locations. The rounded coordinates
+mean that the areas fetched using the integral image no longer correspond with
+those specified by the features, which can give inaccurate results. It is
+possible to re-weight the features to fit the scale, however for our purposes
+we will simply live with the slightly inaccurate values.
 
 After detection is run on each scale, the accepted window texture is read back
 to a JavaScript array using the WebGL `gl.readPixels` command, and used to draw
 appropriately sized rectangles at the locations where faces have been found.
 
 ![Output of detection at different scales](./detectscales.png)
-
-TODO: scaling vs opencv
 
 Optimising
 ----------
@@ -1085,7 +1128,6 @@ computed](./varyings-nodifference.png)
 
 ### Z-Culling
 
-
 z-Culling: use the depth buffer to indicate rejected windows, so that the
 fragment shader doesn't run at all for these pixels. This offers some speedup
 by not running fragment shader at all on blocks of some size, and will avoid
@@ -1162,10 +1204,10 @@ d = discarded
 
 
 
-
 Evaluation
 -----------
 
+![Region of confidence of our classifier vs OpenCV\label{roc}](./roc.pdf)
 
 Application for Head Tracking
 =============================
