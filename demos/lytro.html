@@ -118,7 +118,28 @@ if(NREUMQ.a)NREUMQ.a();
 };
 NREUMQ.a=window.onload;window.onload=NREUMQ.f;
 };
-NREUMQ.push(["nrfj","beacon-1.newrelic.com","83ae5b4f65","195897","cQleFkYMWVRcERdDX1ESRRBREBpdVAFdVw==",0,25,new Date().getTime(),"","","","",""]);</script></body>
+NREUMQ.push(["nrfj","beacon-1.newrelic.com","83ae5b4f65","195897","cQleFkYMWVRcERdDX1ESRRBREBpdVAFdVw==",0,25,new Date().getTime(),"","","","",""]);</script>
+<div id="webcamcontainer" style="position:relative; display:none">
+    <video id="webcamvideo" autoplay width="160" height="120"></video>
+</div>
+<div id="glcanvascontainer" style="position:absolute">
+<canvas id="glcanvas" width="160" height="120"></canvas>
+</div>
+<script src="lbpcascade_frontalface.js"></script>
+<script src="../webcv.js"></script>
+<script src="../webcv-utils.js"></script>
+<script src="../webcv-shadersource.js"></script>
+<script src="../webcv-shaders.js"></script>
+<script src="../webcv-imgproc.js"></script>
+<script src="../webcv-gpu.js"></script>
+<script src="../webcv-facedetect.js"></script>
+<script src="dat.gui.min.js"></script>
+<script src="Stats.js"></script>
+
+<!-- We use grouping function from objdetect or jsfeat library -->
+<script>var jsfeat = {};</script>
+<script src="jsfeat_haar.js"></script>
 <script src="lytro-face.js"></script>
+</body>
 </html>
 

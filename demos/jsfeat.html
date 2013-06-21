@@ -1,0 +1,108 @@
+<html>
+    <head>
+        <script src="jsfeat/build/jsfeat.js"></script>
+        <script src="jsfeat/cascades/frontalface.js"></script>
+        <script src="Stats.js"></script>
+        <script src="jquery.js"></script>
+        <script src="dat.gui.min.js"></script>
+        <script>
+            window.nostep = false;
+            getUserMedia = function (constraints, success, error) {
+                // Try the different browser prefixes
+                if (navigator.getUserMedia) {
+                    navigator.getUserMedia(constraints, success, error);
+                } else if (navigator.webkitGetUserMedia) {
+                    navigator.webkitGetUserMedia(constraints, function (s) {success(window.webkitURL.createObjectURL(s)); }, error);
+                } else if (navigator.mozGetUserMedia) {
+                    navigator.mozGetUserMedia(constraints, success, error);
+                } else {
+                    // Not supported
+                    return false;
+                }
+                return true;
+            }
+            var classifier = jsfeat.haar.frontalface;
+
+            function init() {
+                video = $("#webcamvideo")[0];
+
+                w = video.width;
+                h = video.height;
+
+                img_u8 = new jsfeat.matrix_t(w, h, jsfeat.U8_t | jsfeat.C1_t);
+                edg = new jsfeat.matrix_t(w, h, jsfeat.U8_t | jsfeat.C1_t);
+                work_canvas = document.createElement('canvas');
+                work_canvas.width = w;
+                work_canvas.height = h;
+                work_ctx = work_canvas.getContext('2d');
+                ii_sum = new Int32Array((w+1)*(h+1));
+                ii_sqsum = new Int32Array((w+1)*(h+1));
+                ii_tilted = new Int32Array((w+1)*(h+1));
+                ii_canny = new Int32Array((w+1)*(h+1));
+                getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
+
+
+                window.gui = new dat.GUI();
+                gui.add(window, 'nostep');
+                window.stats = new Stats();
+                //stats.domElement.style.position = 'absolute';
+                //stats.domElement.style.bottom = '0px';
+                stats.domElement.style.zoom = 3.0;
+                $('body').append( stats.domElement );
+
+            }
+
+        function frameLoop() {
+                var start = performance.now();
+
+                work_ctx.drawImage(video, 0, 0, work_canvas.width, work_canvas.height);
+                var imageData = work_ctx.getImageData(0, 0, work_canvas.width, work_canvas.height);
+
+                jsfeat.imgproc.grayscale(imageData.data, img_u8.data);
+
+                jsfeat.imgproc.compute_integral_image(img_u8, ii_sum, ii_sqsum, classifier.tilted ? ii_tilted : null);
+
+                var rects = jsfeat.haar.detect_multi_scale(ii_sum, ii_sqsum, ii_tilted, null, img_u8.cols, img_u8.rows, classifier, 1.2, 1);
+                console.log(rects);
+
+                $('#webcamcontainer div').remove();
+                $(rects).each(function(n,e) {
+                    var box = $('<div>');
+                        box.css({"border": "solid 1px red",
+                            "position": "absolute",
+                            "left": e.x,
+                            "top": e.y,
+                            "width": e.width,
+                            "height": e.height});
+                        $('#webcamcontainer').append(box);
+                    });
+
+                var time = performance.now() - start;
+                console.log(time);
+
+                stats.update();
+
+                requestAnimationFrame(frameLoop);
+        }
+
+        function videoLoaded(stream) {
+            vid = document.getElementById("webcamvideo");
+            vid.src = stream;
+
+            frameLoop();
+        }
+
+        $(document).ready(function(){
+            init();
+        });
+
+        </script>
+    </head>
+    <body>
+        <a href="jsfeat160.html">smaller</a>
+        <a href="webcam-facedetect.html">webcv</a>
+        <div id="webcamcontainer" style="position:relative;">
+            <video id="webcamvideo" autoplay width="320" height="240"></video>
+        </div>
+    </body>
+</html>

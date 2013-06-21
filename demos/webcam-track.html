@@ -25,6 +25,7 @@
 <script src="droid_sans_regular.typeface.js"></script>
 <script src="THREEx.WindowResize.js"></script>
 
+<script src="Stats.js"></script>
 <!-- Kalman -->
 <script src="../sylvester.js"></script>
 <script src="../kalman.js"></script>
@@ -33,10 +34,10 @@
 window.stop = false;
 window.groupRects = true;
 window.showBest = true;
-window.minNeighbours = 4;
+window.minNeighbours = 10;
 window.jsfeatGroup = true;
 window.useKalman = false;
-window.headRange = 100;
+window.headRange = 300;
 window.zRange = 200;
 window.useIQMean = false;
 
@@ -107,6 +108,10 @@ window.kal = new Kalman(3);
     }
 
     function frameLoop() {
+        if (!stop) {
+            cv.utils.requestAnimationFrame(frameLoop);
+            //setTimeout(frameLoop,16);
+        }
         var frameLoopStart = new Date();
         // Do detection
         var rects = fd.detect(vid);
@@ -185,7 +190,6 @@ window.kal = new Kalman(3);
         cv.shaders.setAttributes(rectShader, {aPosition: rectBuf});
         gl.drawArrays(gl.LINES, 0, rectangleVerts.length/2);
 
-        //console.log("Frame loop time", new Date() - frameLoopStart);
 
         // 3D
         var start = performance.now();
@@ -234,10 +238,9 @@ window.kal = new Kalman(3);
         camera.translateZ(zrange * normz);
 
         controls.update(2.0);
+        console.log("Frame loop time", new Date() - frameLoopStart);
 
-        if (!stop) {
-            cv.utils.requestAnimationFrame(frameLoop);
-        }
+        stats.update();
     }
 
     function videoLoaded(stream) {
@@ -319,6 +322,12 @@ window.kal = new Kalman(3);
         gui.add(window, 'useKalman');
         gui.add(kal, 'measureNoiseScalar', 0,100);
         gui.add(kal, 'motionNoiseScalar',0.001,4).step(.001);
+
+        window.stats = new Stats();
+        stats.domElement.style.position = 'absolute';
+        stats.domElement.style.bottom = '0px';
+        stats.domElement.style.zoom = 3.0;
+        $('body').append( stats.domElement );
 
 
         // 3D

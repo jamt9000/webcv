@@ -21,6 +21,9 @@
     function updateVideo(vid, vidTexture) {
         cv.gpu.uploadToTexture(vid, vidTexture);
         console.log("update texture");
+        
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, vidTexture);
 
         gl.drawArrays(gl.TRIANGLES, 0, 6);
     }
@@ -29,9 +32,10 @@
         var vid = document.getElementById("webcamvideo");
         vid.src = stream;
 
-        var convolutionShader = cv.shaders.getNamedShader("convolution");
+        var convolutionShader = cv.shaders.getNamedShader("draw2d_test", "convolution");
         var uniforms = {
             "uResolution": [400, 300],
+            // emboss [-2, -1, 0, -1, 1, 1, 0, 1,  2 ]
             "uKernel": [1, 2, 1, 2, 0, 2, 1, 2, 1],
             "uImageSize": [400, 300]
         };

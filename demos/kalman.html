@@ -11,7 +11,7 @@
                 window.kal = new Kalman(2);
                 gui = new dat.GUI();
                 gui.add(kal, 'measureNoiseScalar', 0,100).name('R (measurement noise)');
-                gui.add(kal, 'motionNoiseScalar',0,100).name('Q (motion noise)');
+                gui.add(kal, 'motionNoiseScalar',0.01,10).name('Q (motion noise)');
             });
 
             function plot(x, y, colour, marker) {
@@ -49,7 +49,7 @@
                     return 0;
                 }
 
-                clicking = true;
+                //clicking = true;
             });
 
             $(document).mouseup(function(e) {
