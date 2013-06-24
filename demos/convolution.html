@@ -20,6 +20,9 @@
 
     function updateVideo(vid, vidTexture) {
         cv.gpu.uploadToTexture(vid, vidTexture);
+        
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, vidTexture);
         console.log("update texture");
 
         // sharp [-1, -1, -1, -1, 16, -1, -1, -1, -1]

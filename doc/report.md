@@ -1,5 +1,37 @@
-Background
-==========
+
+Introduction
+=======================
+
+
+Computer Vision implementations have benefited from the increased speed and
+parallelism of general purpose GPU technology such as Nvidia’s CUDA. However,
+the overhead of distributing such applications has traditionally been high,
+requiring installation of executable files along with compatible hardware and
+libraries. Meanwhile, the focus of everyday computing has been shifting
+towards the web browser, which offers the advantage of instant delivery, but
+is generally considered inappropriate for real-time vision due to the
+inability to run compiled code unhindered. The introduction of JavaScript APIs
+giving access to the webcam and exposing the OpenGL ES graphics library
+through WebGL gives an opportunity to overcome this limitation. Although
+typically used for drawing 3D graphics, WebGL allows arbitrary parallel
+calculations to be offloaded onto the GPU through the use of Shader Programs.
+By these means we create a GPU accelerated face detector which runs in the
+browser, with applications in areas such as augmented reality, web games and
+video chat. We employ the traditional cascade structure for face detection,
+pioneered by Viola and Jones, but adapted to run on the GPU, and using a
+different type of feature. Our aim is to exceed the framerates offered by
+current JavaScript-only implementations. We give a guide to the main concepts
+required to work with general purpose computation with WebGL, explain an
+initial implementation of face detection in JavaScript, then show how it can be
+adapted to WebGL, and then how it can be optimised for speed. We also show how
+this face detector can be used for a practical application of tracking the
+user's head, allowing head motion to translate to motion of the camera in a
+scene such that it appears like looking through a window, allowing 3D scenes
+to be observed in a natural way.
+
+
+Background and Concepts
+=======================
 
 Face Detection
 --------------
@@ -56,8 +88,10 @@ weights. In the end we get an ensemble of features that combined have a lower
 error.
 
 
-![A visual illustration of Adaptive Boosting (AdaBoost), and the weight update
-step [(@Thewlis12)] \label{adaboost}](./adaboost.png)
+![An illustration of Adaptive Boosting (AdaBoost), and the weight update step.
+The weight of misclassified elements is "boosted", so that they will be
+considered more important on the next step. [(@Thewlis12)]
+\label{adaboost}](./adaboost.png)
 
 However, with the above, during detection all the chosen features will need to
 be computed for all the window positions. Viola and Jones noticed that this
@@ -65,7 +99,7 @@ could be improved by having a cascade of different boosted classifiers, which
 are decent at rejecting non-faces but will rarely reject a true face, chaining
 these classifiers together such that a rejected window will be immediately
 discarded, but an accepted window will be passed on to the next level in the
-cascade to face further scrutiny. This means that normally only the windows
+cascade to face further scrutiny (Figure \ref{cascade}. This means that normally only the windows
 with true faces need go through every single level, whereas a non-face may be
 rejected right from the start. This avoids examining every single chosen
 feature for every single window, and makes sense intuitively since the vast
@@ -110,11 +144,9 @@ from the Haar cascades in that, for each weak classifier in a stage, rather
 than a simple threshold there is a list of the possible patterns (0 to 255)
 that contribute either positively or negatively towards a candidate window
 being a face, represented internally as a bit vector of size 256, made up of 8
-32 bit integers.
+32 bit integers. A diagram is shown in Figure \ref{lbpstagedia}.
 
-[TODO explain LBP, advantage on GPU]
-
-~~~~~ {.ditaa .no-separation}
+~~~~~ {.ditaa .no-separation "A look inside one of the stages of a local binary pattern classifier. Each weak classifier has an associated pattern, given by the rectangle (x,y,width,height), which determines the region in the window where the pattern is found. There is then a list of which LBP values should be weighted positive, and which negative. The weightings are summed for each weak classifier, and if they surpass the threshold for the stage, the window is accepted. \label{lbpstagedia}"}
 
  /------------------------------------------------------------------------\ 
  |cFC7                                                                    |
@@ -406,7 +438,7 @@ specified by our vertex coordinates, as if by orthogonal projection, and pass
 our texture coordinates to the fragment shader. The details of the
 normalisation of the input vertex coordinates in pixels to output vertex
 positions have been omitted, and require some understanding with OpenGL's
-coordinate systems, explained in [TODO appendix coordinates].
+coordinate systems, explained in the appendix.
 
 While the *vertex coordinates* represent the *computational range*, the
 *texture coordinates* can be considered our *computational domain*. Texture
@@ -556,7 +588,7 @@ Cascade
 ### Javascript Implementation
 
 The core of the face detection method used is the cascade structure described
-in [TODO], which subjects each window to progressively harder tests, each test
+previously, which subjects each window to progressively harder tests, each test
 being a stage in the cascade which specifies a number of weak classifiers with
 corresponding Local Binary Pattern features within the window.
 
@@ -737,7 +769,7 @@ Window
 ~~~~
 
 Computing the total intensities is then just a matter of using the integral
-image trick described in [TODO], which takes advantage of the fact that the
+image trick described previously, which takes advantage of the fact that the
 value of the integral image at each point is the sum of all pixels to the top-
 left of it in the original image. For example, for the centre and first block
 we have:
@@ -750,21 +782,19 @@ r0 = p3 - p2 - p1 + p0;
 Then, to find the value of our Local Binary Pattern as an 8-bit number, we must ask whether the value of r0 through to r7 is greater than the centre value c. If we define bit $b_i$ as the result of the expression $r_i \geq c$ (where true=1, false=0) then our binary value will be $b_0b_1b_2b_3b_4b_5b_6b_7$, which can be computed in JavaScript using bitwise shifts and sums.
 
 With this JavaScript implementation of the cascade we can now observe
-graphically the effect of each stage, by drawing masks of which windows are
+graphically the effect of each stage, by drawing masks (Figure \ref{lbpcasc}) of which windows are
 accepted or rejected, plotting a white or black pixel respectively at the top-
 left position of each window. This lets us see the early termination effect
 which the cascade provides, whereby only a small number of windows pass
-through to the end, saving computational effort. We can also plot the 0-255
-values of the Local Binary Patterns, giving a visualisation of their
-distribution over the image.
+through to the end, saving computational effort. 
 
-[TODO lbp and mask images, speed]
+![The output from the first and last three stages of our javascript cascade\label{lbpcasc}](./lbpcasc.png)
 
 ### Adapting to WebGL
 
 Having completed a reference implementation in JavaScript, it is now time to
 consider how best to take advantage of the capabilities of WebGL in order to
-speed things up. We have seen [TODO] how WebGL can be used for computation on
+speed things up. We have seen how WebGL can be used for computation on
 a grid, and this method adapts itself quite naturally to our need to compute
 many windows, whose results are independent of each other.
 
@@ -790,8 +820,8 @@ windows have passed the previous stages using a texture.
 Although having a single monolithic shader would avoid the overhead of a
 separate draw call for each stage, there are reasons not to prefer this
 approach. Firstly, we are limited in the amount of Uniform variables we can
-transfer to the shader. According to @webglstats 81% of users have a
-maximum of 221 Uniform 4-component variables available in the fragment shader,
+transfer to the shader. According to @webglstats 81% of users have a maximum
+of 221 Uniform 4-component variables available in the fragment shader,
 although for 9% of users it is as low as 29. (These limits, which can be
 queried at runtime, give the number of vectors of 4 floats which can be used.
 Quite how this corresponds to limits on other types and arrays does not seem
@@ -803,8 +833,8 @@ limitation is that loop conditions and array sizes in GLSL must be based on
 constant expressions, available at compile time. Since each stage has a
 different number of weak classifiers, we would want to loop over a different
 number at each stage. We could solve this with a branch or `break;` within the
-loop, however branching carries with it performance penalties. [TODO branching
-appendix]
+loop, however branching carries with it performance penalties. For more
+information see the appendix on branching.
 
 By instead having a shader program for each stage, we can use the same source
 code for each stage, but inject compiler `#define`s specifying certain
@@ -918,7 +948,7 @@ appropriately sized rectangles at the locations where faces have been found.
 Optimising
 ----------
 
-### Achieving Higher Performance
+### Profiling
 
 In order to test how fast this initial implementation is we can insert some
 timer calls. We measure the time for each scale as well as the overall time for
@@ -938,15 +968,11 @@ further by checking which functions are taking up the most time.
 
 This shows that (besides the initial overhead of setting up the shaders) most
 of the time is spent in the `gl.readPixels` function, responsible for
-transferring image data from GPU memory back to JavaScript. An easy way to see
-just how responsible this function is for the slowdown is to simply comment the
-`readPixels` calls and associated code for drawing rectangles, which gives the following timings:
-
-![Timing without readPixels](./timingnoreadpixels.png)
-
-This shows a massive improvement, bringing the time down to 8ms, but obviously
-our face detection is not very useful if we cannot actually get the locations
-of the faces at the end!
+transferring image data from GPU memory back to JavaScript. Reading back
+pixels from the GPU can certainly be slow, however, because most WebGL calls
+are non-blocking, when we call a function that depends on the drawn output, it
+will wait until all the previous commands have finished their work. This means
+that slowness in other areas gets "blamed" on later commands.
 
 The previous results were timed using a single image, running the detection
 once after the page loads. In a real scenario we would want to be detecting
@@ -959,14 +985,14 @@ browser).
 ![Timing on two images](./timingtwoimages.png)
 
 This gives the surprising result that, while the first run of the detection
-takes a long time, the second is considerably shorter, with times between 2 and
-10 ms for each scale. While we cannot determine the exact cause of this, it
-seems that from a "cold start", readPixels has some overhead which is not
-experienced on subsequent calls. So while readPixels is still the slowest
-factor, once the detection gets going we need not worry about reads taking over
-100ms. From here, the best strategy to improve overall time seems to be to
-minimise the number of readPixels calls needed, ideally with just one at the
-end of detection rather than intermediate calls for each scale.
+takes a long time, the second is considerably shorter, with times between 2
+and 10 ms for each scale. While we cannot determine the exact cause of this,
+it seems that from a "cold start", the initial readPixels has some overhead
+which is not experienced on subsequent calls. So while readPixels is still the
+slowest factor, once the detection gets going we need not worry about reads
+taking over 100ms. From here, the best strategy to improve overall time seems
+to be to minimise the number of readPixels calls needed, ideally with just one
+at the end of detection rather than intermediate calls for each scale.
 
 While refactoring the code to "pingpong" by flipping between multiple
 framebuffers, rather than the more expensive technique of using one framebuffer
@@ -979,29 +1005,35 @@ ordering of the calls to attach textures to the framebuffers, relative to the
 code setting up the shaders. It turned out that, if at least one
 `gl.framebufferTexture2D` call was before the shader setup, the initial
 readPixels call took 10ms, whereas otherwise it took over 200ms. The initial setup
-which includes compiling the shaders always takes around half a second, so while the order
+which includes compiling the shaders always takes around a second, so while the order
 of calls does not change the initial setup time, it allows the "warm up" time
 required before readPixels to effectively be hidden behind the time needed to
 compile the shaders. This is likely because the shader compilation is mostly
 CPU-bound, allowing other tasks to be done in parallel on the GPU.
 
-In order to eliminate the intermediate readPixel calls, we need to write the
-output from each scale to the same texture, preserving the pixels output from
-the previous scale, and encoding the scale in the pixel value. To indicate the
-scale of an accepted window we can simply write out the ordinal number
-(1,2,3...) of the scale as a colour value, or 0 if the window is rejected. The
-size to multiply the rectangle by is then $scaleFactor^{(scaleNumber-1)}$. The
-use of two textures to "pingpong" the results between each stage in a scale
-remains as before, except that on the final stage we write to a shared final
-output texture. One limitation is that, if we have two detections of different
-scales at exactly the same position, the later (larger) scale will overwrite
-the previous one. However, this should be a relatively rare occurence, and
-should not make too much difference when all the rectangles are grouped to find
-the final face positions. Another complication is that we want to keep the
-previous written pixels, instead of writing a black pixel for a rejected window
-in a subsequent scale. The simplest way to prevent output of any pixel at all
-is to use the `discard;` statement in the fragment shader. However, in certain
-cases (discussed in @discardperf) this may invoke a performance penalty,
+### Sharing the same texture across scales
+
+Although the slowness attributed to readPixels also includes the expense of
+previous commands, we would still like to minimise the number of times we have
+to copy data from the GPU. Ideally we want to only do it once, after all the
+computation is finished, instead of once for every scale. In order to
+eliminate the intermediate readPixel calls, we need to write the output from
+each scale to the same texture, preserving the pixels output from the previous
+scale, and encoding the scale in the pixel value. To indicate the scale of an
+accepted window we can simply write out the ordinal number (1,2,3...) of the
+scale as a colour value, or 0 if the window is rejected. The size to multiply
+the rectangle by is then $scaleFactor^{(scaleNumber-1)}$. The use of two
+textures to "pingpong" the results between each stage in a scale remains as
+before, except that on the final stage we write to a shared final output
+texture. One limitation is that, if we have two detections of different scales
+at exactly the same position, the later (larger) scale will overwrite the
+previous one. However, this should be a relatively rare occurence, and should
+not make too much difference when all the rectangles are grouped to find the
+final face positions. Another issue is that we want to keep the previous
+written pixels, instead of writing a black pixel for a rejected window in a
+subsequent scale. The simplest way to prevent output of any pixel at all is to
+use the `discard;` statement in the fragment shader. However, in certain cases
+(discussed in @discardperf) this may invoke a performance penalty,
 particularly on mobile GPUs. An alternative is to use OpenGL's blend modes,
 which specify how pixels written should be blended with the pixels already
 present.
@@ -1009,11 +1041,11 @@ present.
 ![Writing out pixels for each scale. A lighter colour pixel indicates a larger
 detection](./scalessametexture.png)
 
-First an implementation was created using `discard;`, giving an average time of 71ms
+First an implementation is created using `discard;`, giving an average time of 71ms
 per detection run (for a 320x240 image over 20 runs), compared to 110ms using
 `readPixels` for each scale under equivalent conditions. 
 
-The implementation was then adapted to use blending, in order to test which
+The implementation is then adapted to use blending, in order to test which
 would give the best performance. As explained in @Thomas8, the
 `gl.blendFunc(sfactor, dfactor)` function sets the factors which the source
 (being drawn) and destination (already in the framebuffer) should be multiplied
@@ -1026,11 +1058,14 @@ preserve the existing pixel.
 
 Comparing the timing of the two techniques over 100 iterations, there turned
 out to be almost no difference in the mean time, at least on a laptop Intel
-GPU, although as shown in the box plot the Blend version had a slightly greater
-variance. In the end the Blend version was preferred, to avoid potential
-slowness with other GPUs and because it allowed the shader code to be
-simplified, eliminating a branching condition to explicitly check if the window
-was rejected.
+GPU, although as shown in the box plot the Blend version had a slightly
+greater variance (possibly due to sporadic browser pauses caused by garbage
+collection). For the moment we shall prefer the Blend version, to avoid
+potential slowness with other GPUs and because it allows the shader code to be
+simplified, eliminating a branching condition to explicitly check if the
+window was rejected. However, knowing that `discard` can be used (at least on
+non-mobile GPUs) with little penalty shall prove useful in further
+optimisation.
 
 ![Box plot of timings using Discard vs Blend, for 100 iterations](./blend-vs-discard.png)
 
@@ -1047,18 +1082,18 @@ operation, reading only 1 pixel, after each draw. Because some times are very
 small (below 1ms) and difficult to measure accurately, we also artificially
 repeat each draw operation 10 times, and divide the total time by 10. In this
 way, we can obtain a detailed profile of how much time is spent running the
-shader for each stage and scale.
+shader for each stage and scale (Figure \ref{stagetimes}).
 
 We observe that, as expected more time is spent in the early stages, because
 the first stage must run on all windows, whereas for laters stages some windows
 are rejected. Increasing the scale also shows a decrease in time, since less
 window positions need to be evaluated, although this is only really noticeable
 in the first two stages, the subsequent stages showing around the same time
-regardless of scale.
+regardless of scale (Figure \ref{scaletime})
 
-![Times of stages and scales](./stagetimes.png)
+![Times of stages and scales\label{stagetimes}](./stagetimes.png)
 
-![Times for the first 3 stages at different scales](./scaletime.png)
+![Times for the first 3 stages at different scales \label{scaletime}](./scaletime.pdf)
 
 What is interesting to note is that the first three stages take up 48% of the
 time, while the remaining 17 stages take up 52% of the time. So while it is
@@ -1069,9 +1104,8 @@ stages as special cases (such as manually fine-tuning the shader code for these
 specific stages) is unlikely to provide much of an advantage, compared to
 general techniques that apply equally to the later stages.
 
-### Why are the shaders slow?
-
-At an abstract level, all the fragment shaders are doing is
+To gain further insight we must identify precisely where the bottleneck is. At
+an abstract level, all the fragment shaders are doing is
 
 1. Looking up some values in the integral image and LBP lookup textures
 2. Doing some maths to determine what value to output
@@ -1081,9 +1115,11 @@ so we wouldn't expect the "maths" portion to be overly challenging. @Harris
 explains this using the concept of "arithmetic intensity", the ratio of
 computation to bandwidth.
 
+~~~~
     arithmeticIntensity = operations/wordsTransferred
+~~~~
 
-According to Harris, applications that benefit most from GPU acceleration are
+According to @Harris, applications that benefit most from GPU acceleration are
 those with high arithmetic intensity, where "The data communication required to
 compute each element of the output is small and coherent". So ideally, the
 amount of data fetched from textures would be small, and would be spatially
@@ -1105,35 +1141,60 @@ slowdown, we create a test shader which performs the same texture fetches as
 our face detection shader but does not do anything useful with the result
 (instead just outputting the sum of the values, to ensure the fetches are not
 optimised out). Performing the same texture fetches as the 1st stage of the
-cascade (48 fetches), and timing over 1000 iterations, we get an average time of 3.1 ms per
-draw call, which is pretty much identical to the full shader. Further,
-commenting out half the fetches reduces the time to 1.3ms, clearly showing
-the impact of texture fetching on the time.
-
-TODO: Things tried that made no difference:
-
-* Moving code to calculate rectangle offsets into vertex shader
-* Using UNSIGNED_BYTE texture (is faster if just reading one component (byte), but
-  once we access all it is just as slow as FLOAT texture)
-* Iterating over scales within the shader (just made the "multiscale" shader
-  around as slow as the combined time for different scales, and makes it
-  difficult to track which windows accepted, since we need to encode for each
-  scale somehow)
-
-![Calculating offsets for texture lookup with varyings in the vertex shader
-(green) vs fragment shader (red) gives no difference in timing, around 3.5ms in
-each case. The output values are simply the sum of all texture values mod 255,
-giving not very meaningful output, but showing that identical values are
-computed](./varyings-nodifference.png)
+cascade (48 fetches), and timing over 1000 iterations, we get an average time
+of 3.1 ms per draw call, which is pretty much identical to the full shader.
+Further, commenting out half the fetches reduces the time to 1.3ms, clearly
+showing the impact of texture fetching on the time. We can't really do much
+about the fact that we need to access so many values, since they are all
+required to give a correct result. However, one source of inefficiency is that
+we are using a texture merely to keep track of which locations have been
+rejected, meaning that every fragment needs to read at least one texture
+value, if only to determine that it has nothing else to do.
 
 ### Z-Culling
 
-z-Culling: use the depth buffer to indicate rejected windows, so that the
-fragment shader doesn't run at all for these pixels. This offers some speedup
-by not running fragment shader at all on blocks of some size, and will avoid
-having to read the "activeWindows" texture.
+Z-culling can be used to remedy the aforementioned inefficiency, by ensuring
+that certain fragments are never processed in the first place.  @HarrisBuck
+explain how a GPU feature called the depth buffer, intended to be used to
+avoid shading pixels of 3D objects that will never be seen due to being hidden
+behind other objects, can be used in general purpose computation to mask out
+values tht we don't want to be processed. When the depth buffer is enabled,
+rasterising 3D geometry at a position also causes a normalised version of its
+Z coordinate to be written as a value between 0.0 and 1.0 in the depth buffer,
+where 0.0 represents a near location and 1.0 far. Upon drawing further
+geometry, the Z coordinate of incoming fragment positions that would be shaded
+is checked against the value in the depth buffer. When using the default
+`gl.LESS` depth test, if the incoming value is less than the existing one, the
+fragment is taken to be "in front" of the existing geometry. Otherwise the
+incoming fragment is not processed. If we set our rectangle to be at depth
+position 0.5, then depth buffer values of 0.0 and 1.0 will cause elements in
+our grid to be turned on or off respectively.
 
-~~~~ {.ditaa .no-separation .no-shadows .scale:0.8}
+We would like to use a depth buffer to control which windows have been
+accepted or rejected in our cascade. That way we could eliminate the need for
+a texture to pass around this information, and remove a branch from the
+fragment shader, since the shader would not run at all for rejected windows.
+Unfortunately, unlike in desktop OpenGL, in WebGL we cannot set the
+`gl_FragDepth` variable in the shader. The only depth that can be written to
+the depth buffer is that determined by the underlying geometry. However we
+have another option, not writing any depth at all, by using the `discard`
+keyword described previously, which prevents any output at all for the
+fragment.
+
+We can use this to turn the problem on its head somewhat. If we initialise the
+depth buffer to the far value, 1.0, and then draw pixels on our quad at 0.0,
+these pixels will fail subsequent depth tests, because the test `0.0 < 0.0`
+fails. However if we discard a fragment then the previous value of 1.0 in the
+depth buffer will remain, meaning that the fragment will still be processed in
+subsequent draws. This means that, somewhat paradoxically, we can set up a
+situation where if we want to accept a window then we must discard it, and if
+we want to reject it we must output some arbitrary value in order to update
+the depth buffer. Then for the final stage, as before, we write out a value
+indicating the scale. Understanding how the depth buffer interacts with the
+fragment shader output is best done visually, as in Figure \ref{zculling}. We
+also give a sample of Z-culling output on an actual image, Figure \ref{zcullim}.
+
+~~~~ {.ditaa .no-separation .no-shadows "A visual explanation of Z-Culling \label{zculling}"}
 
 We start with a depth buffer that is cleared to 1, the far value, meaning that
 all pixels on our quad (which is at the near z value, 0) will be processed.
@@ -1151,10 +1212,6 @@ Depth buffer
 |    |    |    |    |
 +----+----+----+----+
 
-~~~~
-
-
-~~~~ {.ditaa .no-separation .no-shadows}
 
 We then run the first stage, which will discard the output if the window is
 accepted, writing a 0 if it is rejected. This causes the depth buffer to be
@@ -1164,7 +1221,7 @@ windows, since their output is discarded.
 
 1st Stage Output          Updated depth buffer     
 d = discarded    
-1 = rejected                          
+0 = rejected                          
 +----+----+----+----+     +----+----+----+----+  
 |d   |0   |d   |0   |     |1   |0   |1   |0   |  
 |    |    |    |    |     |    |cBLU|    |cBLU|  
@@ -1184,7 +1241,7 @@ not less than zero, the test fails, so the pixel is not processed.
 2nd Stage Output          Updated depth buffer    
 x = not processed 
 d = discarded
-1 = rejected
+0 = rejected
 
 +----+----+----+----+     +----+----+----+----+   
 |d   |x   |0   |x   |     |1   |0   |0   |0   |   
@@ -1200,26 +1257,177 @@ d = discarded
 ~~~~
 
 ![An illustration of Z-culling on an actual image. We use a checkerboard pattern to show the lack
- of a value](./zcull-discard.png)
+ of a value \label{zcullim}](./zcull-discard.png)
 
+Z-culling lets us eliminate the accepted windows texture and associated checks
+in the fragment shader.  But it also means that we can go a step further and
+disable writing colour buffer values altogether for the intermediate  stages,
+since everything is handled by the depth buffer.  We no longer need any
+textures to "ping pong", so we can simply not  attach any texture to our
+framebuffer and make do with just a depth buffer. This saves on bandwidth,
+since we no longer have to be writing RGBA values just to indicate a binary
+result.
+
+The Z-culling optimisation shaved off around 6 to 10ms for a 320x240 image,
+which is fairly significant when dealing with real time detection, although
+the savings vary according to how many candidate faces the image has. An
+alternative to the depth buffer is the stencil buffer, an 8 bit buffer which
+can be used for more general comparison functions. We tested using the stencil
+buffer for the same purpose, but it gave no difference in performance.
+
+### Non-optimisations
+
+We briefly examine some attempted optimisations which in fact made no
+difference, or made things worse. If an optimisation has no effect, it doesn't
+necessarily mean the principle is wrong, it can just be an indication that the
+bottleneck is in another place.
+
+* Since we need to access various texture offsets in the fragment shader in
+order to calculate the Local Binary Patterns, and these offsets "move" along
+with the window position, the idea was to calculate these offsets in the
+vertex shader and use a varying to interpolate them linearly across the
+rectangle. According to @Woolley, "when multiple related texture coordinates
+are used...a common mistake is to compute the related values in the fragment
+program. This results in a possibly expensive computation being performed very
+frequently." However, testing a shader using this approach (Figure
+\ref{varyings}) gave no difference, perhaps indicating that moderns compilers
+are clever enough to "hoist" out these sort of values.
+
+* In an attempt to take better advantage of locality of texture accesses,
+which gives values a better chance of being cached, we explored computing
+multiple windows at once in the fragment shader, which would involve looking
+up adjacent texture values, in theory better for caching. This shrinks the
+computational range, since we only output half as many fragments, and we need
+some way to reconstruct the original window locations. We tried packing up to
+four windows at once, using the four colour channels to output four different
+results, however in all cases it was slightly slower than computing a window
+per fragment. We also looked at iterating over scales within the fragment
+shader, but the "multiscale" shader took the same amount of time as the
+combined time for different scales. This seems to indicate that it is the
+sheer number of texture accesses made which accounts for the majority of the
+time used.
+
+* Although we compute the integral image in JavaScript, it only takes around a
+millisecond. However, what is slower is first converting the original image to
+grayscale, for the sole reason that to get from an image to a JavaScript array
+we need to use a 2d `<canvas>` as an intermediary, and with Chrome the canvas
+`getImageData` method turns out to be quite slow (up to 8ms on a bad day). We
+looked at sidestepping the issue by computing the grayscale and integral image
+directly in WebGL, and we came up with a creative way of using blending and
+two passes of "shifting" the image down and then right in order to accumulate
+all the values for the integral, however this technique ended up taking
+longer. Nevertheless there are likely to be more efficient ways to calculate
+the integral image on the GPU, so this merits further investigation.
+
+
+![Calculating offsets for texture lookup with varyings in the vertex shader
+(green) vs fragment shader (red) gives no difference in timing, around 3.5ms in
+each case. The output values are simply the sum of all texture values mod 255,
+giving not very meaningful output, but showing that identical values are
+computed \label{varyings}](./varyings-nodifference.png)
 
 
 Evaluation
 -----------
 
+We are naturally interested in how good our face detector is at detecting
+faces, and how fast it is at doing so. Since we use the same cascade as
+OpenCV, we would expect to see somewhat similar detection success rates.
+However, there are certain differences in the implementations, with
+implications both for detection and speed. OpenCV employs a `ystep`
+optimisation, which causes every odd row and column to be skipped if the scale
+is less than 2, and to skip an additional step in the x direction when a face
+is not found, leading to more than a quartering of the work done for these
+scales, and altering which windows are detected. However, for the purposes of
+comparison, we patch OpenCV to remove this ystep, so that it then gives
+identical results to our implementation for the base scale, which gives us
+some assurance that our implementation is correct. However, as mentioned
+before, we do scaling in a different way from OpenCV, since we scale the
+detector and they scale the image. Hence, above the base scale, we get
+different output, and we would expect our detector to be less reliable than
+OpenCV for non-integer scales since we are not correcting for the imprecision
+caused by rounding non-integer coordinates.
+
+In order to formally test our classifier's accuracy, we use the FDDB [@fddbTech]
+benchmark, which contains 2845 images with 5171 faces. These are images from
+news articles containing all sorts of orientations of faces, so we would not
+expect a very high accuracy, however we do not expect to be drastically worse
+than OpenCV. We run both our and OpenCV's detectors using the LBP cascade, and
+employ OpenCV's rectangle clustering function (which has been ported to
+JavaScript in jsfeat) to group the subsequent detected rectangles. The number
+of neighbours (near-overlapping rectangles) at a certain position gives us a
+measure of confidence that a region is a face, since windows slightly off-
+centre from a face will still give a positive result.
+
 ![Region of confidence of our classifier vs OpenCV\label{roc}](./roc.pdf)
+
+We use this number of neighbours to plot a Region of Confidence with FDDB,
+Figure \ref{roc}. This shows that indeed our accuracy is somewhat less than
+that of OpenCV, in particular we have a relatively large number of false
+positives, so to get up to 50% detected in the dataset we have to put up with
+200 false positives, and OpenCV outperforms us in number of true positives by
+quite a bit. We suspect that this is mainly due to the scaling method used,
+since it seems to lead to sporadic false positives rectangles. However, in
+practice this does not cause much problems, especially when using a webcam,
+since we can just set a relatively high threshold on the number of neighbours
+due to there being one face well centred in the scene.
+
+![A typical webcam image\label{qt}](./qt.png)
+
+We use jsfeat [@jsfeat] as our baseline JavaScript implementation, for the
+purpose of comparing speed, which uses a Haar feature cascade. jsfeat also
+employs a (slightly different) step-skipping optimisation, so we time with and
+without this optimisation (we could of course modify our implementation to use
+this sort of optimisation, but it is easiest to compare if we know each
+detector is processing every window). We also show the times for OpenCV, which
+is a native C++ library. OpenCV can be compiled with Intel's Thread Building
+Blocks (TBB), which offers CPU parallel processing primitives which OpenCV
+uses to split the window computations up onto multiple CPU cores. We also show
+speed for a regular Release build of OpenCV without TBB, and a Release build
+with the `ystep` disabled. We run our implementation on an integrated Intel
+laptop graphics card, so the numbers are about what the average user could expect.
+
+We take the average over 20 iterations, and with a scale factor of 1.2, using an image with one face,  Figure
+\ref{qt}, since we are mainly interested in the type of speeds we can get for
+tracking one face with a webcam. We run the detection for two resized versions
+of the image, at 320x240 and 160x120.
+
+
+Detector  Variant           320x240 (times in ms)    160x120
+--------  --------          ---------------------    -------
+jsfeat    regular             149.66                  25.75
+jsfeat    no ystep            667.15                  98.15
+opencv    with TBB            6.55                    2.06
+opencv    without TBB         11.54                   2.46
+opencv    no ystep,no TBB     32.62                   5.96
+ours      no optimisation     74.36                   16.53
+ours      z-culling           71.93                   15.15
+
+We see that we do better than jsfeat, even when jsfeat is skipping pixels. In
+particular, the unoptimised jsfeat takes 667 ms for a 320x240 image, whereas
+we can do it in 72ms. For the 160x120 images, the times our detector gets
+would let us get  60 frames a second, or give us time to do other tasks and
+still reach an acceptable framerate. However OpenCV still comes out on top,
+showing that native code still has the upper hand.
+
 
 Application for Head Tracking
 =============================
 
-Grouping Rectangles
--------------------
-
-Tracking
+Tracking 
 --------
 
-Kalman Filter
--------------
+We can use the detected face from the webcam in order to control the virtual
+camera in a 3D scene, moving the camera opposite the head motion, so that it
+appears like we are looking through a window into a 3D world, as in figure
+\ref{three}. To get the most likely face out of multiple detections, we use
+the jsfeat clustering function, and select the rectangle with the most
+neighbours. We then use the x and y position of the rectangle to control our
+camera, mapping the motion relative to the video size to a user-specified
+range that we offset the camera by. To control the depth, we use the size of
+the window, normalised by the width of the webcam video.
+
+![Using head motion to control a virtual camera, such that the scene acts like looking through a window\label{three}](./3dview.pdf)
 
 Our head tracking gives a fast, responsive result allowing the user to quickly
 observe the 3D scene from different angles. However it suffers from the
@@ -1228,7 +1436,10 @@ pixel location of the detected face, even when the head remains fairly
 stationary. These noisy measurements are an unavoidable aspect of our
 detection, but we can employ some filtering to get a smoother result.
 
-The Kalman filter is a Bayesian hidden variable [TODO is it?] model which can be used to
+Kalman Filter
+-------------
+
+The Kalman filter is a Bayesian model which can be used to
 estimate the dynamics of a system, with a linear Gaussian transition. The
 typical example is that of tracking blips on a radar, estimating position and
 velocity from these noisy observations. The Kalman filter consists of
@@ -1370,24 +1581,79 @@ to continue moving at the same constant speed. We do this for 10 frames before
 giving up, in case the face reappears, so that the camera motion is not
 interrupted if we lose the face for a couple of frames.
 
-Further Work
-=============
+Conclusions and Further Work
+============================
 
+We hope that this work shows the viability of WebGL as a platform for computer
+vision and other general purpose computational techniques. The performance
+gains achieved over plain JavaScript show that, despite the sometimes arduous
+task of transforming algorithms to fit within the WebGL framework, when speed
+is essential WebGL is the only widely available choice without abandoning the
+convenience of instant delivery through the web browser. However we believe
+there are opportunities for simplifying the experience of programming with
+WebGL, and we see interesting opportunities in providing abstraction libraries
+or cross-compilers that allow expressing computational concepts in a more
+natural way, for example a CUDA-like language that can be compiled to WebGL.
+One challenge is the inherent statefulness of WebGL. A big difficulty in
+writing modular components is the need to account for the global state, such
+as the currently enabled modes like depth testing and blending. A subroutine
+has no guarantee about what will happen when attempting to draw something, and
+the caller cannot rely on the state being the same after the subroutine is
+called. While it is tempting to hide all this messiness away through
+abstractions, there is a tradeoff between convenience and the ability to
+use the native API for WebGL specific optimisations.
 
-Optimisations to look at:
+With regards to the face detection implementation described, we see the
+possibility of making it more portable, such that it could be used on a wider
+range of devices. Firstly there are considerations which would need to be
+taken to make it run well on certain browsers in Windows, such as Chrome,
+since these use a wrapper layer called ANGLE which translates OpenGL calls
+into DirectX, which carries some overhead and is not completely compatible
+with OpenGL. Beyond that, many mobile devices and mini computers such as the
+Raspberry Pi have quite capable GPUs running OpenGL ES. To adapt our
+implementation to these we would have to work with less generous limits of
+numerical precision than on a full computer, and would be unlikely to have the
+convenience of floating point textures, so would have to adapt accordingly,
+such as packing the integral image values into the bytes of an RGBA texture.
+WebGL itself is available on mobile devices in the experimental version of the
+Chrome browser, and being able to perform computer vision within the browser
+on a mobile device would offer exciting possibilities, especially when
+combined with access to the motion sensors or GPS.
 
-* "Stage-parallel" processing - compute weak classifiers over a larger window
-  at once, as in @Obukhov2011 - problem: Can only output four bytes for each
-  fragment
-* Split some work between CPU and GPU. Since the different scales can be
-  computed independently, could hand off some portion of the scales to CPU to
-  be processed simultaneously
-  (but would then lose ability to use CPU for other tasks)
-* Reduce number of texture accesses by "factorisation" of the LBP pattern - eg
-  if we know the top left block should never be zero, can return negative from
-  classifier after just computing centre and top left blocks. Problems:
-  branching, and how to represent the "factoring" data in the shader (if it
-  requires fetching more values from texture could do more harm than good!)
+Our treatment of face detection has focused mainly on the use of a pre-
+existing cascade, essentially shoehorning it to fit our needs on the GPU. An
+alternative approach would be to create a purpose-built cascade, having
+characteristics that make it intentionally well suited to the GPU. In
+particular, given the bottleneck posed by the texture lookups, we would
+ideally like features that are "GPU friendly". In @ZhangZhang, one of the
+methods presented to speed up detection is the feature-centric (rather than
+window-centric) cascade, due to @Schneiderman. The idea is that, at least in
+the early stages, we prefer features that are easy to compute over features
+that are "best" for detecting faces, so that for the first stage all our
+features in the image can be computed as a grid, for example at the pixel
+level, and multiple windows then share the same features. We believe that
+similar features could be adapted quite well to the GPU, since we can do grid-
+style computation easily with the fragment shader, and it allows us to
+benefit from contiguous texture accesses.
+
+Finally, we speculate on further applications for face detection in the
+browser. The tracking implemetation described would work well for the purposes
+of 3D games, for example allowing the player to move his head to glimpse
+around walls. Augmented reality games involving interacting with virtual
+objects would also be possible, such as keeping a virtual ball in the air. It
+could also be adapted to interactive media and photography, for example to
+observe the perspective-shift photography offered by light field cameras such
+as Lytro. With some additional work, it would be feasible to implement some
+(approximate) form of eye tracking, for example with gaussian processes as in
+@opengazer, which could be used to track the user's gaze on the screen, for
+example to conduct tests that collect a heatmap of where participants look on
+a web page, or interactive HDR (High Dynamic Range) photography where the tone
+mapping is adjusted according to the intesity of the area the user is looking
+at. The use cases need not be limited to the user's webcam, since we can
+perform face detection on any image or video we can embed in a webpage, for
+example it could be used to zoom in on faces in a streaming video, to crop a
+video chat to a smaller region containing just the face, or to tag faces in
+photos in the browser before uploading to a photo website.
 
 
 Appendix
@@ -1466,12 +1732,12 @@ we would use X coordinate `(i + 0.5)/width` to offset then normalise to the \[0,
 
 
 
-The Perils of Branching
+The Dangers of Branching
 ----------------------
 
 Branching within the shader, while possible through the use of if-else
 statements, carries with it numerous caveats, explained in @HarrisBuck. In the
-"olden days" (say, 2003) in order to emulate branching, GPUs would simply
+"olden days" (circa 2003) in order to emulate branching, GPUs would simply
 evaluate both sides of the condition, then determine which result to use before
 writing the output. This meant that the time would be proportional to the
 cumulative cost of both branches.
@@ -1497,13 +1763,15 @@ presents a barrier to efficient parallel computation, since knowing that all
 fragments will follow the same instructions gives the GPU opportunities for
 optimisation.
 
-For this reason, branching in the shader should be kept to a minimum, and it is
-preferred for algorithms to be structured such that fragments in the same
-neighbourhood take the same branches in order to maximise coherency. Especially
-in the case of WebGL, the programmer has no control over what graphics card
-capability the user will have, and is unable to query information about the
-graphics card due to security restrictions, so it is best to program for the
-lowest common denominator.
+For this reason, branching in the shader should be kept to a minimum, and it
+is preferred for algorithms to be structured such that fragments in the same
+neighbourhood take the same branches in order to maximise coherency.
+Especially in the case of WebGL, the programmer has no control over what
+graphics card capability the user will have, and is unable to query
+information about the graphics card due to security restrictions, so it is
+usually best to program for the lowest common denominator. However there will
+always be cases where it is faster to branch than not to branch, and there is
+no substitute for careful testing to determine if a branch in fact gives a penalty.
 
 
 References

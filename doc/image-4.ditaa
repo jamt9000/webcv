@@ -1,0 +1,59 @@
+
+We start with a depth buffer that is cleared to 1, the far value, meaning that
+all pixels on our quad (which is at the near z value, 0) will be processed.
+
+Depth buffer
+
++----+----+----+----+
+|1   |1   |1   |1   |
+|    |    |    |    |
++----+----+----+----+
+|1   |1   |1   |1   |
+|    |    |    |    |
++----+----+----+----+
+|1   |1   |1   |1   |
+|    |    |    |    |
++----+----+----+----+
+
+
+We then run the first stage, which will discard the output if the window is
+accepted, writing a 0 if it is rejected. This causes the depth buffer to be
+updated to the z value of the quad, 0, for those windows which have been
+rejected, whereas the previous depth of 1 is preserved for the accepted
+windows, since their output is discarded.
+
+1st Stage Output          Updated depth buffer     
+d = discarded    
+0 = rejected                          
++----+----+----+----+     +----+----+----+----+  
+|d   |0   |d   |0   |     |1   |0   |1   |0   |  
+|    |    |    |    |     |    |cBLU|    |cBLU|  
++----+----+----+----+     +----+----+----+----+  
+|0   |d   |d   |0   |     |0   |1   |1   |0   |  
+|    |    |    |    |     |cBLU|    |    |cBLU|  
++----+----+----+----+     +----+----+----+----+  
+|0   |0   |d   |0   |     |1   |1   |0   |1   |  
+|    |    |    |    |     |    |    |cBLU|    |  
++----+----+----+----+     +----+----+----+----+  
+
+On subsequent stages, those pixels with a depth value of 0 will not be
+processed, since we are using the "gl.LESS" depth test to compare the depth of
+the pixel on our quad with the depth in the depth buffer, and because zero is
+not less than zero, the test fails, so the pixel is not processed.
+
+2nd Stage Output          Updated depth buffer    
+x = not processed 
+d = discarded
+0 = rejected
+
++----+----+----+----+     +----+----+----+----+   
+|d   |x   |0   |x   |     |1   |0   |0   |0   |   
+|    |    |    |    |     |    |cBLU|cBLU|cBLU|   
++----+----+----+----+     +----+----+----+----+   
+|x   |0   |d   |x   |     |0   |0   |1   |0   |   
+|    |    |    |    |     |cBLU|cBLU|    |cBLU|   
++----+----+----+----+     +----+----+----+----+   
+|x   |x   |0   |x   |     |1   |1   |0   |1   |   
+|    |    |    |    |     |    |    |cBLU|    |   
++----+----+----+----+     +----+----+----+----+   
+

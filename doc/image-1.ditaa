@@ -1,0 +1,27 @@
+
+ /------------------------------------------------------------------------\ 
+ |cFC7                                                                    |
+ |  Stage 1                                                               |
+ |   o stageThreshold                                                     |
+ |                                                                        |
+ |    /------------\     /------------\     /------------\                |
+ |    |Weak        |     |Weak        |     |Weak        |                |
+ |    |classifier 1|     |classifier 2|     |classifier 3|                |
+ |    +------------+     +------------+     +------------+                |
+ |    | x          |     | x          |     | x          |                |
+ |    | y          |     | y          |     | y          | ...            |
+ |    | width      |     | width      |     | width      |                |
+ |    | height     |     | height     |     | height     |                |
+ |    | LBP vals   |     | LBP vals   |     | LBP vals   |                |
+ |    \------+-----/     \------------/     \------------/                |
+ |           |                                                            |
+ |   Pattern in LBP vals?                                                 |
+ |     yes       no                                                       |
+ |      |        |                                                        |
+ |      |        |                                                        |
+ |      v        v                                                        |
+ |  positive   negative                                                   |
+ |  weighting  weighting                                                  |
+ |                                                                        |
+ |                                                                        |
+ \------------------------------------------------------------------------/

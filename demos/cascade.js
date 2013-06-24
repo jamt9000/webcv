@@ -1,5 +1,5 @@
 var debugLBP = false;
-var debugStage = true;
+var debugStage = false;
 var THRESHOLD_EPS = 1e-5;
 
 function dimensionsOfLBPLookupTable(cascade) {

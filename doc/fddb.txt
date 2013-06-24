@@ -1,0 +1,7 @@
+@TechReport{fddbTech,
+  author = {Vidit Jain and Erik Learned-Miller},
+  title =  {FDDB: A Benchmark for Face Detection in Unconstrained Settings},
+  institution =  {University of Massachusetts, Amherst},
+  year = {2010},
+  number = {UM-CS-2010-009}
+  }

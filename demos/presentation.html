@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]> <html class="no-js ie6" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js ie7" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js ie8" lang="en"> <![endif]-->
+<!--[if gt IE 8]><!-->  <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title>Face Detection in the Browser with WebGL</title>
+	
+	<meta name="description" content="A jQuery library for modern HTML presentations">
+	<meta name="author" content="Caleb Troughton">
+	<meta name="viewport" content="width=1024, user-scalable=no">
+	
+	<!-- Core and extension CSS files -->
+	<link rel="stylesheet" href="deck/core/deck.core.css">
+	<link rel="stylesheet" href="deck/extensions/goto/deck.goto.css">
+	<link rel="stylesheet" href="deck/extensions/menu/deck.menu.css">
+	<link rel="stylesheet" href="deck/extensions/navigation/deck.navigation.css">
+	<link rel="stylesheet" href="deck/extensions/status/deck.status.css">
+	<link rel="stylesheet" href="deck/extensions/hash/deck.hash.css">
+	<link rel="stylesheet" href="deck/extensions/scale/deck.scale.css">
+	
+	<!-- Style theme. More available in /themes/style/ or create your own. -->
+	<link rel="stylesheet" href="deck/themes/style/swiss.css">
+	
+	<!-- Transition theme. More available in /themes/transition/ or create your own. -->
+	<link rel="stylesheet" href="deck/themes/transition/fade.css">
+	
+	<script src="deck/modernizr.custom.js"></script>
+
+	<style>
+	figcaption{
+		text-align: center;
+	}
+	</style>
+</head>
+
+<body class="deck-container">
+
+<!-- Begin slides -->
+<section class="slide" id="title-slide">
+	<h1>Face Detection in the Browser with WebGL</h1>
+</section>
+
+<section class="slide" id="webgl">
+	<h2>Our Toolbox</h2>
+	<img src="pres/WebGL_logo.png">
+    <ul>
+		<li><h3>OpenGL ES 2.0 in the Browser</h3></li>
+		<li><h3>A 3D Graphics API...in theory</h3></li>
+		<li><h3>But can be used for general purpose computation</h3></li>
+		<li><h3>getUserMedia API</h3></li>
+	</ul>
+</section>
+
+<!--
+<section class="slide" id="how-to-overview">
+	<h2>How to Make a Deck</h2>
+	<ol>
+		<li>
+			<h3>Write Slides</h3>
+			<p>Slide content is simple&nbsp;HTML.</p>
+		</li>
+		<li>
+			<h3>Choose Themes</h3>
+			<p>One for slide styles and one for deck&nbsp;transitions.</p>
+		</li>
+		<li>
+			<h3>Include Extensions</h3>
+			<p>Add extra functionality to your deck, or leave it stripped&nbsp;down.</p>
+		</li>
+	</ol>
+</section>
+-->
+
+
+<section class="slide" id="webgl-arch">
+	<h2>WebGL Architecture</h2>
+	<img src="pres/shaders.svg">
+</section>
+
+
+<section class="slide" id="grid">
+	<h2>Computation on a Grid</h2>
+	<figure>
+		<img src="../doc/quad.png">
+		<figcaption>Vertex coordinates = computational range</figcaption>
+	</figure>
+	<br><br>
+	<figure>
+		<img src="../doc/texcoords.png">
+		<figcaption>Texture coordinates = computational domain</figcaption>
+	</figure>
+</section>
+
+
+<section class="slide" id="convolutionfrag">
+	<h2>Convolution Fragment Shader</h2>
+    <img src="../doc/fragshader.png">
+</section>
+
+
+<section class="slide" id="sobel">
+	<h2>Sobel Edge Detection Shader</h2>
+	<iframe src="./sobelstart.html" width="450" height="800"></iframe>
+</section>
+
+
+<section class="slide" id="facedet">
+	<h2>Face Detection</h2>
+	<ul>
+		<li><h3>Viola and Jones (2001)</h3></li>
+		<li><h3>Training - learning from sample images</h3></li>
+		<li><h3>Detection - finding faces in images</h3></li>
+	</ul>
+</section>
+
+<section class="slide" id="integrals">
+	<h2>Integral Image</h2>
+	<img src="pres/integrals.png">
+</section>
+
+<section class="slide" id="lbp">
+	<h2>Local Binary Patterns</h2>
+	<img src="../doc/lbp.png">
+</section>
+
+<section class="slide" id="cascadestruct">
+	<h2>Cascade Structure</h2>
+	<img src="../doc/stage.svg">
+</section>
+
+<section class="slide" id="instage">
+	<h2>Inside a Stage</h2>
+	<img src="pres/instage.png">
+	<img src="../doc/lbpwindow.svg" width="400">
+</section>
+
+<section class="slide" id="viscascade">
+	<h2>Visualising the Cascade</h2>
+	<img src="pres/stages.png">
+</section>
+
+<section class="slide" id="stagefrag">
+	<h2>Stage Fragment Shader</h2>
+	<img src="../doc/stagefrag.png">
+</section>
+
+<section class="slide" id="scales">
+	<h2>Scaling</h2>
+	<ul>
+		<li>Scaling image vs scaling detector
+	</ul>
+	<img src="pres/detectscales.png">
+</section>
+
+<section class="slide" id="scalestimeindiv">
+	<h2>Scaling Timings (320x240 image)</h2>
+	<img src="pres/timingscaleindiv.png">
+	<ul><li>Reading back for every scale</ul>
+</section>
+
+<section class="slide" id="scalesame">
+	<h2>Scaling with shared output texture</h2>
+	<ul><li>Use Blending to preserve previous values</li></ul>
+	<img src="pres/scalessametexture.png">
+	<h3>70 ms @ 320x240</h3>
+</section>
+
+<section class="slide" id="optimisation">
+	<h2>Optimisations</h2>
+	<ul>
+		<li><h3>Some of which worked:</h3></li>
+		<li>Z-Culling - using the depth buffer to eliminate windows</li>
+		<li><h3>Others which didn't</h3>
+		<li>Moving code to the vertex shader
+		<li>Multiple windows/scales in one go
+		<li>Chasing the bottlenecks - the ultimate bottleneck is the texture fetches
+		</li>
+	</ul>
+</section>
+
+<section class="slide" id="timing">
+	<h2>Timing Evaluation</h2>
+	<iframe src="webcameval.html" width="800" height="600"></iframe>
+</section>
+
+<section class="slide" id="applications">
+	<h2>Applications</h2>
+	<ul>
+		<li><h3><a href="webcam-track.html">Head tracking for viewing 3D scenes</a></h3></li>
+		<li>Kalman filter for smoothing</li>
+
+
+		<li><h3><a href="lytro.html">Lytro Lightfield photography - parallax effect</a></h3></li>
+		<li>Using Lytro.com embedded widget</li>
+	</ul>
+</section>
+
+<section class="slide" id="questions">
+<h1>Questions?</h1>
+</section>
+
+
+<section class="slide" id="further">
+<h2>Further work</h2>
+<ul>
+	<li>Implementing on other devices (Smartphones - OpenGL ES)
+	<li>"GPU friendly" cascade and features
+    <li>Making WebGL more computation-friendly
+    <li>Further computer vision in WebGL - eye tracking, optical flow
+</ul>
+</section>
+
+
+<section class="slide" id="kalman">
+<h2>Kalman filter</h2>
+<img src="pres/kalman1.png">
+<img src="pres/kalman2.png">
+</section>
+
+
+<section class="slide" id="accuracy">
+<h2>Detection accuracy</h2>
+<img src="pres/roc.png">
+</section>
+
+
+<section class="slide" id="stagetimes">
+<h2>Stage times</h2>
+<img src="../doc/stagetimes.png">
+</section>
+
+
+<!-- deck.navigation snippet -->
+<a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+<a href="#" class="deck-next-link" title="Next">&#8594;</a>
+
+<!-- deck.status snippet -->
+<p class="deck-status">
+	<span class="deck-status-current"></span>
+	/
+	<span class="deck-status-total"></span>
+</p>
+
+<!-- deck.goto snippet -->
+<form action="." method="get" class="goto-form">
+	<label for="goto-slide">Go to slide:</label>
+	<input type="text" name="slidenum" id="goto-slide" list="goto-datalist">
+	<datalist id="goto-datalist"></datalist>
+	<input type="submit" value="Go">
+</form>
+
+<!-- deck.hash snippet -->
+<a href="." title="Permalink to this slide" class="deck-permalink">#</a>
+
+
+<!-- Grab CDN jQuery, with a protocol relative URL; fall back to local if offline -->
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script>window.jQuery || document.write('<script src="deck/jquery-1.7.2.min.js"><\/script>')</script>
+
+<!-- Deck Core and extensions -->
+<script src="deck/core/deck.core.js"></script>
+<script src="deck/extensions/hash/deck.hash.js"></script>
+<script src="deck/extensions/menu/deck.menu.js"></script>
+<script src="deck/extensions/goto/deck.goto.js"></script>
+<script src="deck/extensions/status/deck.status.js"></script>
+<script src="deck/extensions/navigation/deck.navigation.js"></script>
+<script src="deck/extensions/scale/deck.scale.js"></script>
+
+<!-- Initialize the deck -->
+<script>
+$(function() {
+	$.deck('.slide');
+});
+</script>
+
+</body>
+</html>

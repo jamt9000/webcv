@@ -355,13 +355,45 @@ window.kal = new Kalman(3);
                 );
                 scene.add(sphere);
 
+                // Cube
+                var cube = new THREE.Mesh(
+                    new THREE.CubeGeometry(100,100,100),
+                    new THREE.MeshLambertMaterial({color: 0x0000CC})
+                );
+                cube.position.x -= 150;
+                cube.position.z -= 200;
+                scene.add(cube);
+
+                // Cone
+                var cone = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0, 100, 400, 50, 50, false),
+                    new THREE.MeshLambertMaterial({color: 0x008811})
+                );
+                cone.position.x += 150;
+                cone.position.z -= 300;
+                scene.add(cone);
+
+
                 // TEXT
                 var text = new THREE.Mesh(
-                    new THREE.TextGeometry("Hello", {font: "droid sans", size:18}),
+                    new THREE.TextGeometry("Hello World", {font: "droid sans", size:18}),
                     new THREE.MeshLambertMaterial({color: 0xCCff00})
                 );
+                text.position.z += 50;
                 text.position.x += 50;
                 scene.add(text);
+
+                // Back
+                var backTexture = new THREE.ImageUtils.loadTexture("bluesky.jpg");
+                //backTexture.wrapS = THREE.RepeatWrapping;
+                //backTexture.wrapT = THREE.RepeatWrapping;
+                //backTexture.repeat.set(10,10);
+                var back = new THREE.Mesh(
+                    new THREE.PlaneGeometry(3000,3000,1,1),
+                    new THREE.MeshBasicMaterial({map:backTexture, side:THREE.DoubleSide})
+                );
+                back.position.z = -1000;
+                scene.add(back);
 
                 // LIGHT
                 var pointLight = new THREE.PointLight(0xFFFFFF);

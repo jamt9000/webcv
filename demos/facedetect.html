@@ -24,10 +24,74 @@
 /*global WebCV, cv, gl, alert, $, Float32Array, lbpcascade_frontalface, Uint8Array */
 /*jslint bitwise: true */
 
-var niterations = 20;
+var niterations = 1;
 var iteration = 0;
-var filename = "scales";
+var filename = "newsradio";
 var flipped = false;
+window.tottime = 0;
+
+function reset() {
+    flipped = false;
+    window.finishedTest = false;
+    window.tottime = 0;
+    iteration = 0
+    fd = undefined
+    img.get(0).src = filename + ".png"
+}
+
+function benchmark160norm(){
+    window.zCull = false;
+    window.wantColourBuffer = true;
+    filename = "qt160"
+            reset();
+
+}
+
+function benchmark160zcull(){
+
+    window.zCull = true;
+    window.wantColourBuffer = false;
+    filename = "qt160"
+            reset();
+}
+
+
+function benchmarkscalesnorm(){
+
+    window.zCull = false;
+    window.wantColourBuffer = true;
+
+    filename = "scales"
+
+            reset();
+
+}
+
+function benchmarkscaleszcull(){
+
+    window.zCull = true;
+    window.wantColourBuffer = false;
+    filename = "scales"
+            reset();
+
+}
+
+function benchmark320norm(){
+    window.zCull = false;
+    window.wantColourBuffer = true;
+    filename = "qt320"
+    niteratons = 20
+        reset();
+}
+
+function benchmark320zcull(){
+    window.zCull = true;
+    window.wantColourBuffer = false;
+    filename = "qt320"
+    niteratons = 20
+    reset();
+
+}
 
 $(document).ready(function () {
     var canvas = document.getElementById("glcanvas");
@@ -63,7 +127,12 @@ $(document).ready(function () {
             fd = new FaceDetector(lbpcascade_frontalface, img.width(), img.height());
         }
         window.fd = fd;
+        var detstart = performance.now ? performance.now() : new Date();
+        
         window.rects = fd.detect(img.get(0));
+        var detend = (performance.now ? performance.now() : new Date())  - detstart;
+        console.log("detend", detend)
+        window.tottime += detend;
 
         if (!showImage && !drawStages) {
             $('#faceimage div').remove()
@@ -90,6 +159,7 @@ $(document).ready(function () {
                 var av = sum/window.times.length;
                 console.log("Av over all iterations:", av);
                 window.finishedTest = true;
+                console.log("tottime", window.tottime/niterations)
 
             }
         }
