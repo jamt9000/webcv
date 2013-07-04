@@ -49,9 +49,10 @@
 	<img src="pres/WebGL_logo.png">
     <ul>
 		<li><h3>OpenGL ES 2.0 in the Browser</h3></li>
+		<li><h3>Version 1.0.1 released, experimental support in browsers</h3></li>
 		<li><h3>A 3D Graphics API...in theory</h3></li>
 		<li><h3>But can be used for general purpose computation</h3></li>
-		<li><h3>getUserMedia API</h3></li>
+		<li><h3>getUserMedia API - webcam access</h3></li>
 	</ul>
 </section>
 
@@ -78,12 +79,14 @@
 
 <section class="slide" id="webgl-arch">
 	<h2>WebGL Architecture</h2>
+	<ul><li>Shader Programs - written in a C-like language, GLSL</ul>
 	<img src="pres/shaders.svg">
 </section>
 
 
 <section class="slide" id="grid">
 	<h2>Computation on a Grid</h2>
+	<h3>Mapping graphical concepts to computational concepts</h3>
 	<figure>
 		<img src="../doc/quad.png">
 		<figcaption>Vertex coordinates = computational range</figcaption>
@@ -98,12 +101,17 @@
 
 <section class="slide" id="convolutionfrag">
 	<h2>Convolution Fragment Shader</h2>
-    <img src="../doc/fragshader.png">
+	<ul>
+		<li>An example of "computation on a grid"
+		<li>Fragment shader = "inner loop"
+	</ul>
+    <img src="pres/fragshader.png">
 </section>
 
 
 <section class="slide" id="sobel">
 	<h2>Sobel Edge Detection Shader</h2>
+	<ul><li>Convolution as "gathering"</li></ul>
 	<iframe src="./sobelstart.html" width="450" height="800"></iframe>
 </section>
 
@@ -112,7 +120,7 @@
 	<h2>Face Detection</h2>
 	<ul>
 		<li><h3>Viola and Jones (2001)</h3></li>
-		<li><h3>Training - learning from sample images</h3></li>
+		<li><h3>Training - learning from sample images (focus of my Industrial Placement)</h3></li>
 		<li><h3>Detection - finding faces in images</h3></li>
 	</ul>
 </section>
@@ -132,15 +140,16 @@
 	<img src="../doc/stage.svg">
 </section>
 
-<section class="slide" id="instage">
-	<h2>Inside a Stage</h2>
-	<img src="pres/instage.png">
-	<img src="../doc/lbpwindow.svg" width="400">
-</section>
 
 <section class="slide" id="viscascade">
 	<h2>Visualising the Cascade</h2>
 	<img src="pres/stages.png">
+</section>
+
+<section class="slide" id="instage">
+	<h2>Inside a Stage</h2>
+	<img src="pres/instage.png">
+	<img src="../doc/lbpwindow.svg" width="400">
 </section>
 
 <section class="slide" id="stagefrag">
@@ -199,14 +208,10 @@
 	</ul>
 </section>
 
-<section class="slide" id="questions">
-<h1>Questions?</h1>
-</section>
-
-
 <section class="slide" id="further">
-<h2>Further work</h2>
-<ul>
+<h2>Questions?</h2>
+<ul> 
+	<h3>Some ideas on further work:</h3>
 	<li>Implementing on other devices (Smartphones - OpenGL ES)
 	<li>"GPU friendly" cascade and features
     <li>Making WebGL more computation-friendly

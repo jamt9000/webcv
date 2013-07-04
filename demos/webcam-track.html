@@ -24,6 +24,7 @@
 <script src="FlyControls.js"></script>
 <script src="droid_sans_regular.typeface.js"></script>
 <script src="THREEx.WindowResize.js"></script>
+<script src="ColladaLoader.js"></script>
 
 <script src="Stats.js"></script>
 <!-- Kalman -->
@@ -41,16 +42,52 @@ window.headRange = 300;
 window.zRange = 200;
 window.useIQMean = false;
 
-// 3D
-var w = window.innerWidth;
-var h = window.innerHeight;
-var renderer = new THREE.WebGLRenderer();
-var camera = new THREE.PerspectiveCamera(/*angle=*/45, /*aspect=*/w/h,
-/*near=*/0.1, /*far=*/10000);
-var scene = new THREE.Scene();
-var controls;
+window.renderer;
+window.scene;
+window.controls;
+window.cubeupdate = 0;
+window.cubesx = -500;
+window.cubesy = 100;
+window.cubesz = -250;
+window.cubessize = 80;
+
 
 window.kal = new Kalman(3);
+window.kal.measureNoiseScalar = 50;
+window.kal.motionNoiseScalar = 0.3;
+
+function view(n) {
+    if(n==0) {
+        camera.position.x = 0;
+        camera.position.y = 177;
+        camera.position.z = 623;
+        camera.lookAt(new THREE.Vector3(0,100,0));
+    }
+    else if(n==1) {
+        camera.position.x = 310;
+        camera.position.y = 106;
+        camera.position.z = 366;
+        camera.lookAt(new THREE.Vector3(0,100,0));
+    }
+    else if(n==2) {
+        camera.position.x = 278;
+        camera.position.y = 284;
+        camera.position.z = 186;
+        camera.lookAt(new THREE.Vector3(0,200,0));
+    }
+    else if(n==3) {
+        camera.position.x = -174;
+        camera.position.y = 505;
+        camera.position.z = 1058;
+        camera.lookAt(new THREE.Vector3(0,100,0));
+    }
+    else if(n==4) {
+        camera.position.x = 62;
+        camera.position.y = 250;
+        camera.position.z = -525;
+        camera.lookAt(new THREE.Vector3(0,100,0));
+    }
+}
 
 (function () {
 
@@ -237,7 +274,19 @@ window.kal = new Kalman(3);
         camera.translateY(range * normy);
         camera.translateZ(zrange * normz);
 
-        controls.update(2.0);
+        if(cubeupdate > 30) {
+
+            for(var c=0; c<cubes.length; c++) {
+                cubes[c].position.x = cubesx + (cubessize + 8) * cubepatterns[cubei][c][0];
+                cubes[c].position.y = cubesy + (cubessize + 8) * cubepatterns[cubei][c][1];
+            }
+            cubei += 1;
+            cubei %= 5;
+            cubeupdate = 0;
+        }
+        cubeupdate++;
+
+        controls.update(5.0);
         console.log("Frame loop time", new Date() - frameLoopStart);
 
         stats.update();
@@ -331,86 +380,157 @@ window.kal = new Kalman(3);
 
 
         // 3D
-                scene.add(camera);
-                camera.position.z = 300;
-                renderer.setSize(w, h);
+        var width = window.innerWidth-3;
+        var height = window.innerHeight-5;
+        renderer = new THREE.WebGLRenderer();
+        var camera = new THREE.PerspectiveCamera(/*angle=*/45, /*aspect=*/width/height,
+        /*near=*/0.1, /*far=*/10000);
+        window.camera = camera;
+        scene = new THREE.Scene();
+        scene.add(camera);
+        camera.position.z = 400;
+            camera.position.y = 150;
+            renderer.setSize(width, height);
 
-                // FLOOR
-                var floorTexture = new THREE.ImageUtils.loadTexture("grass.png");
-                floorTexture.wrapS = THREE.RepeatWrapping;
-                floorTexture.wrapT = THREE.RepeatWrapping;
-                floorTexture.repeat.set(10,10);
-                var floor = new THREE.Mesh(
-                    new THREE.PlaneGeometry(1000,1000,1,1),
-                    new THREE.MeshBasicMaterial({map:floorTexture, side:THREE.DoubleSide})
-                );
-                floor.position.y = -100;
-                floor.rotation.x = Math.PI/2;
-                scene.add(floor);
-
-                // SPHERE
-                var sphere = new THREE.Mesh(
-                    new THREE.SphereGeometry(50,16,16),
-                    new THREE.MeshLambertMaterial({color: 0xCC0000})
-                );
-                scene.add(sphere);
-
-                // Cube
-                var cube = new THREE.Mesh(
-                    new THREE.CubeGeometry(100,100,100),
-                    new THREE.MeshLambertMaterial({color: 0x0000CC})
-                );
-                cube.position.x -= 150;
-                cube.position.z -= 200;
-                scene.add(cube);
-
-                // Cone
-                var cone = new THREE.Mesh(
-                    new THREE.CylinderGeometry(0, 100, 400, 50, 50, false),
-                    new THREE.MeshLambertMaterial({color: 0x008811})
-                );
-                cone.position.x += 150;
-                cone.position.z -= 300;
-                scene.add(cone);
+            // FLOOR
+            var floorTexture = new THREE.ImageUtils.loadTexture("grass.png");
+            floorTexture.wrapS = THREE.RepeatWrapping;
+            floorTexture.wrapT = THREE.RepeatWrapping;
+            floorTexture.repeat.set(10,10);
+            var floor = new THREE.Mesh(
+                new THREE.PlaneGeometry(1000,1000,1,1),
+                new THREE.MeshBasicMaterial({map:floorTexture, side:THREE.DoubleSide})
+            );
+            floor.position.y = -100;
+            floor.rotation.x = Math.PI/2;
+            scene.add(floor);
 
 
-                // TEXT
-                var text = new THREE.Mesh(
-                    new THREE.TextGeometry("Hello World", {font: "droid sans", size:18}),
-                    new THREE.MeshLambertMaterial({color: 0xCCff00})
-                );
-                text.position.z += 50;
-                text.position.x += 50;
-                scene.add(text);
+            // TOWER
+            
+            var loader = new THREE.ColladaLoader();
+            loader.options.convertUpAxis = true;
+            loader.load("./resources/qtblender.dae", function(result){
+                window.result = result;
+                //result.scene.rotation.x = -Math.PI/2;
+                result.scene.rotation.y = Math.PI/2;
+                var s = result.scene;
+                s.position.y = -100;
+                s.scale.x = s.scale.y = s.scale.z = 15;
+                scene.add(result.scene);
+            });
+            
 
-                // Back
-                var backTexture = new THREE.ImageUtils.loadTexture("bluesky.jpg");
-                //backTexture.wrapS = THREE.RepeatWrapping;
-                //backTexture.wrapT = THREE.RepeatWrapping;
-                //backTexture.repeat.set(10,10);
-                var back = new THREE.Mesh(
-                    new THREE.PlaneGeometry(3000,3000,1,1),
-                    new THREE.MeshBasicMaterial({map:backTexture, side:THREE.DoubleSide})
-                );
-                back.position.z = -1000;
-                scene.add(back);
+            /*
+            var loader = new THREE.JSONLoader();
+            loader.load("resources/qt.js", function(geom, mat) {
+                mesh = new THREE.Mesh(geom, new THREE.MeshFaceMaterial(mat));
+                //scene.add(mesh);
+            });
+            */
 
-                // LIGHT
-                var pointLight = new THREE.PointLight(0xFFFFFF);
-                pointLight.position.x = 10;
-                pointLight.position.y = 50;
-                pointLight.position.z = 130;
-                scene.add(pointLight);
+            // SPHERE
+            var sphere = new THREE.Mesh(
+                new THREE.SphereGeometry(50,16,16),
+                new THREE.MeshLambertMaterial({color: 0xCC0000})
+            );
+            sphere.position.x = 100;
+            sphere.position.y = -100 + 50;
+            sphere.position.z = 300;
+            scene.add(sphere);
 
-                THREEx.WindowResize(renderer, camera);
+            window.cubes = [];
+            window.cubepatterns = [[[0,2],[1,1],[2,1],[2,2],[2,3]],
+                                   [[1,1],[1,3],[2,1],[2,2],[3,2]],
+                                   [[1,1],[2,1],[2,3],[3,1],[3,2]],
+                                   [[1,2],[2,0],[2,1],[3,1],[3,2]],
+                                   [[1,1],[2,0],[3,0],[3,1],[3,2]]];
+            window.cubei = 0;
 
 
-                $('#threedcontainer').append(renderer.domElement);
-                $('#threedcontainer canvas').css({"height": $(window).height()});
-                //var controls = new THREE.TrackballControls(camera);
-                controls = new THREE.FlyControls(camera, renderer.domElement);
-                controls.dragToLook = true;
-                cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
+            for(var i=0; i<5; i++) {
+
+            // Cube
+            var cube = new THREE.Mesh(
+                new THREE.CubeGeometry(cubessize, cubessize, cubessize),
+                new THREE.MeshPhongMaterial({color: 0x222222, specular:0xffffff, shininess:80})
+            );
+            cube.position.x = -10000;
+            cube.position.z = cubesz;
+            cube.position.y = 0;
+            scene.add(cube);
+            cubes.push(cube);
+
+            }
+
+            // Cone
+            var cone = new THREE.Mesh(
+                new THREE.CylinderGeometry(0, 50, 300, 30, 30, false),
+                new THREE.MeshLambertMaterial({color: 0x008811})
+            );
+            cone.position.x += 150;
+            cone.position.z -= 300;
+            scene.add(cone);
+
+
+            // TEXT
+            var text = new THREE.Mesh(
+                new THREE.TextGeometry("Imperial College London", {font: "droid sans", size:20, height:4}),
+                new THREE.MeshLambertMaterial({color: 0xCCCCCC})
+            );
+            text.position.x = 20;
+            text.position.y = 150;
+            text.position.z = 0;
+
+            text.rotation.y = -Math.PI/16;
+            text.rotation.x = +Math.PI/16;
+            scene.add(text);
+
+            // Back
+            /*
+            var backTexture = new THREE.ImageUtils.loadTexture("bluesky.jpg");
+            //backTexture.wrapS = THREE.RepeatWrapping;
+            //backTexture.wrapT = THREE.RepeatWrapping;
+            //backTexture.repeat.set(10,10);
+            var back = new THREE.Mesh(
+                new THREE.PlaneGeometry(3000,3000,1,1),
+                new THREE.MeshBasicMaterial({map:backTexture, side:THREE.DoubleSide})
+            );
+            back.position.z = -1000;
+            scene.add(back);
+            */
+            var skyGeometry = new THREE.CubeGeometry( 5000, 5000, 5000 );
+            var urlPrefix = "resources/checkered/checkered_";
+            var urls = [ urlPrefix + "right.jpg", urlPrefix + "left.jpg",
+            urlPrefix + "top.jpg", urlPrefix + "top.jpg",
+            urlPrefix + "front.jpg", urlPrefix + "back.jpg" ];
+            var materialArray = [];
+            for (var i = 0; i < 6; i++){
+                materialArray.push( new THREE.MeshBasicMaterial({
+                    map: THREE.ImageUtils.loadTexture(urls[i]),
+                    side: THREE.BackSide
+                }));
+            }
+            var skyMaterial = new THREE.MeshFaceMaterial( materialArray );
+            var skyBox = new THREE.Mesh( skyGeometry, skyMaterial );
+            scene.add( skyBox );
+
+            // LIGHT
+            var pointLight = new THREE.PointLight(0xFFFFFF);
+            pointLight.position.x = -400;
+            pointLight.position.y = 300;
+            pointLight.position.z = 230;
+            scene.add(pointLight);
+
+            THREEx.WindowResize(renderer, camera);
+
+
+            $('#threedcontainer').append(renderer.domElement);
+            //$('#threedcontainer canvas').css({"height": $(window).height()});
+            //var controls = new THREE.TrackballControls(camera);
+            controls = new THREE.FlyControls(camera, renderer.domElement);
+            controls.dragToLook = true;
+            cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
 
 
 
@@ -423,6 +543,7 @@ window.kal = new Kalman(3);
 <style>
     body{
         margin: 0px;
+        font-family: Helvetica, Arial, sans-serif;
     }
     #threedcontainer canvas{
     }
@@ -434,6 +555,20 @@ window.kal = new Kalman(3);
     #glcanvas {
         position: absolute;
     }
+    #views {
+        width: 500px;
+        height: 50px;
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        padding: 10px;
+    }
+    #views a{
+        color: white;
+        font-size: 20px;
+        margin-right: 10px;
+    }
 </style>
 </head>
 <body>
@@ -442,6 +577,13 @@ window.kal = new Kalman(3);
 </div>
 <canvas id="glcanvas" width="160" height="120"></canvas>
 <div id="threedcontainer"></div>
+<div id="views">
+    <a onclick="view(0)" href="#">View 0</a>
+    <a onclick="view(1)" href="#">View 1</a>
+    <a onclick="view(2)" href="#">View 2</a>
+    <a onclick="view(3)" href="#">View 3</a>
+    <a onclick="view(4)" href="#">View 4</a>
+</div>
 
 </body>
 </html>

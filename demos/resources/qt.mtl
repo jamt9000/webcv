@@ -1,0 +1,325 @@
+#
+## Alias OBJ Material File
+# Exported from SketchUp, (c) 2000-2012 Trimble Navigation Limited
+
+newmtl Derrick_Shoes
+Ka 0.000000 0.000000 0.000000
+Kd 0.400000 0.278431 0.239216
+Ks 0.330000 0.330000 0.330000
+
+newmtl Derrick_Shirt
+Ka 0.000000 0.000000 0.000000
+Kd 0.478431 0.478431 0.600000
+Ks 0.330000 0.330000 0.330000
+
+newmtl Derrick_Hair
+Ka 0.000000 0.000000 0.000000
+Kd 0.337255 0.298039 0.278431
+Ks 0.330000 0.330000 0.330000
+
+newmtl Derrick_Pager
+Ka 0.000000 0.000000 0.000000
+Kd 0.137255 0.137255 0.137255
+Ks 0.330000 0.330000 0.330000
+
+newmtl Derrick_Sweater
+Ka 0.000000 0.000000 0.000000
+Kd 0.556863 0.556863 0.556863
+Ks 0.330000 0.330000 0.330000
+
+newmtl Derrick_T_shirt
+Ka 0.000000 0.000000 0.000000
+Kd 0.886275 0.886275 0.886275
+Ks 0.330000 0.330000 0.330000
+
+newmtl Derrick_Pants
+Ka 0.000000 0.000000 0.000000
+Kd 0.600000 0.537255 0.478431
+Ks 0.330000 0.330000 0.330000
+
+newmtl Derrick
+Ka 0.000000 0.000000 0.000000
+Kd 0.823529 0.705882 0.549020
+Ks 0.330000 0.330000 0.330000
+
+newmtl Google_Earth_Snapshot1
+Ka 0.000000 0.000000 0.000000
+Kd 0.333333 0.333333 0.333333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/Google_Earth_Snapshot1.jpg
+
+newmtl Concrete_Block_8x8_Gray
+Ka 0.000000 0.000000 0.000000
+Kd 0.615686 0.619608 0.603922
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/Concrete_Block_8x8_Gray.jpg
+
+newmtl Concrete_Block_8x8_Gray1_
+Ka 0.000000 0.000000 0.000000
+Kd 0.615686 0.619608 0.603922
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/Concrete_Block_8x8_Gray1_.jpg
+
+newmtl side_1
+Ka 0.000000 0.000000 0.000000
+Kd 0.356863 0.333333 0.317647
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/side_1.jpg
+
+newmtl side_2
+Ka 0.000000 0.000000 0.000000
+Kd 0.349020 0.329412 0.313725
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/side_2.jpg
+
+newmtl side_3
+Ka 0.000000 0.000000 0.000000
+Kd 0.356863 0.337255 0.321569
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/side_3.jpg
+
+newmtl M_1800495042_5a0a68381a_1
+Ka 0.000000 0.000000 0.000000
+Kd 0.419608 0.403922 0.392157
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/M_1800495042_5a0a68381a_1.jpg
+
+newmtl tower_4
+Ka 0.000000 0.000000 0.000000
+Kd 0.878431 0.874510 0.866667
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/tower_4.jpg
+
+newmtl FrontColor
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.330000 0.330000 0.330000
+
+newmtl side_4
+Ka 0.000000 0.000000 0.000000
+Kd 0.345098 0.329412 0.309804
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/side_4.jpg
+
+newmtl side_5
+Ka 0.000000 0.000000 0.000000
+Kd 0.349020 0.329412 0.313725
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/side_5.jpg
+
+newmtl tower_5
+Ka 0.000000 0.000000 0.000000
+Kd 0.517647 0.509804 0.521569
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/tower_5.jpg
+
+newmtl goodone_3
+Ka 0.000000 0.000000 0.000000
+Kd 0.705882 0.666667 0.611765
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/goodone_3.jpg
+
+newmtl goodone_4
+Ka 0.000000 0.000000 0.000000
+Kd 0.180392 0.184314 0.172549
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/goodone_4.jpg
+
+newmtl goodone_2
+Ka 0.000000 0.000000 0.000000
+Kd 0.678431 0.639216 0.592157
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/goodone_2.jpg
+
+newmtl London_ImperialCollege_10
+Ka 0.000000 0.000000 0.000000
+Kd 0.717647 0.686275 0.611765
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_10.jpg
+
+newmtl London_ImperialCollege_7
+Ka 0.000000 0.000000 0.000000
+Kd 0.639216 0.603922 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_7.jpg
+
+newmtl London_ImperialCollege_3
+Ka 0.000000 0.000000 0.000000
+Kd 0.678431 0.627451 0.545098
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_3.jpg
+
+newmtl London_ImperialCollege_12
+Ka 0.000000 0.000000 0.000000
+Kd 0.627451 0.584314 0.505882
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_12.jpg
+
+newmtl tower_7
+Ka 0.000000 0.000000 0.000000
+Kd 0.835294 0.823529 0.819608
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/tower_7.jpg
+
+newmtl London_ImperialCollege_4
+Ka 0.000000 0.000000 0.000000
+Kd 0.403922 0.349020 0.258824
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_4.jpg
+
+newmtl London_ImperialCollege_8
+Ka 0.000000 0.000000 0.000000
+Kd 0.968627 0.937255 0.854902
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_8.jpg
+
+newmtl London_ImperialCollege_9
+Ka 0.000000 0.000000 0.000000
+Kd 0.615686 0.560784 0.482353
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_9.jpg
+
+newmtl London_ImperialCollege_11
+Ka 0.000000 0.000000 0.000000
+Kd 0.674510 0.615686 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_11.jpg
+
+newmtl London_ImperialCollege_15
+Ka 0.000000 0.000000 0.000000
+Kd 0.713725 0.666667 0.580392
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_15.jpg
+
+newmtl London_ImperialCollege_16
+Ka 0.000000 0.000000 0.000000
+Kd 0.717647 0.670588 0.580392
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_16.jpg
+
+newmtl London_ImperialCollege_18
+Ka 0.000000 0.000000 0.000000
+Kd 0.682353 0.623529 0.541176
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_18.jpg
+
+newmtl London_ImperialCollege_18_1_
+Ka 0.000000 0.000000 0.000000
+Kd 0.682353 0.623529 0.541176
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_18_1_.jpg
+
+newmtl London_ImperialCollege_19
+Ka 0.000000 0.000000 0.000000
+Kd 0.776471 0.752941 0.698039
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_19.jpg
+
+newmtl London_ImperialCollege
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege.jpg
+
+newmtl London_ImperialCollege_21
+Ka 0.000000 0.000000 0.000000
+Kd 0.607843 0.564706 0.486275
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_21.jpg
+
+newmtl London_ImperialCollege1_
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege1_.jpg
+
+newmtl London_ImperialCollege2_
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege2_.jpg
+
+newmtl London_ImperialCollege3_
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege3_.jpg
+
+newmtl London_ImperialCollege_21_1_
+Ka 0.000000 0.000000 0.000000
+Kd 0.607843 0.564706 0.486275
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_21_1_.jpg
+
+newmtl London_ImperialCollege4_
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege4_.jpg
+
+newmtl London_ImperialCollege5_
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege5_.jpg
+
+newmtl London_ImperialCollege6_
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege6_.jpg
+
+newmtl London_ImperialCollege7_
+Ka 0.000000 0.000000 0.000000
+Kd 0.368627 0.447059 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege7_.jpg
+
+newmtl London_ImperialCollege_22
+Ka 0.000000 0.000000 0.000000
+Kd 0.615686 0.584314 0.513725
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_22.jpg
+
+newmtl London_ImperialCollege_25
+Ka 0.000000 0.000000 0.000000
+Kd 0.666667 0.615686 0.533333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_25.jpg
+
+newmtl London_ImperialCollege_17
+Ka 0.000000 0.000000 0.000000
+Kd 0.792157 0.768627 0.713725
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_17.jpg
+
+newmtl London_ImperialCollege_23
+Ka 0.000000 0.000000 0.000000
+Kd 0.776471 0.960784 0.858824
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_23.jpg
+
+newmtl London_ImperialCollege_24
+Ka 0.000000 0.000000 0.000000
+Kd 0.796078 0.968627 0.874510
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_24.jpg
+
+newmtl goodone_1
+Ka 0.000000 0.000000 0.000000
+Kd 0.141176 0.141176 0.133333
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/goodone_1.jpg
+
+newmtl London_ImperialCollege_26
+Ka 0.000000 0.000000 0.000000
+Kd 0.372549 0.545098 0.478431
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/London_ImperialCollege_26.jpg
+
+newmtl M_2311441227_2abe0e8206_1
+Ka 0.000000 0.000000 0.000000
+Kd 0.588235 0.615686 0.639216
+Ks 0.330000 0.330000 0.330000
+map_Kd qt/M_2311441227_2abe0e8206_1.jpg
+

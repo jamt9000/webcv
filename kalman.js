@@ -135,7 +135,7 @@ Kalman.prototype.filter = function(measurement) {
         
 
         var predict = kalman_predict(this.estimate, this.covar,
-                this.motion, this.F, this.motionNoise.x(this.motionNoiseScalar));
+                this.motion, this.F, this.motionNoise.x(Math.pow(this.motionNoiseScalar,2)));
 
         this.estimate = predict[0];
         this.covar = predict[1];
@@ -155,7 +155,7 @@ Kalman.prototype.filter = function(measurement) {
 
 Kalman.prototype.predict = function() {
     return kalman_predict(this.estimate, this.covar,
-                this.motion, this.F, this.motionNoise.x(this.motionNoiseScalar));
+                this.motion, this.F, this.motionNoise.x(Math.pow(this.motionNoiseScalar,2)));
 }
 
 Kalman.prototype.update = function(measurement) {

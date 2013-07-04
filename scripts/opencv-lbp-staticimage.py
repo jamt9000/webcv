@@ -18,14 +18,22 @@ filename = sys.argv[1]
 #frame = cv2.imread("/home/james/Code/webcv/demos/scales.png")
 frame = cv2.imread(filename)
 
+tottime = 0.0
+niters = 20
 
-start = time.time()
+for i in range(niters):
+    start = time.time()
 
-small = frame#cv2.resize(frame, (320,240))
-rects = fd.detectMultiScale(small, 1.2, 0, 0, (24,24), (320,320))
-elapsed = time.time() - start
-print "Time " + str(elapsed * 1000.)
-print rects
+    small = frame#cv2.resize(frame, (320,240))
+    rects = fd.detectMultiScale(small, 1.2, 0, 0, (24,24), (320,320))
+    elapsed = (time.time() - start) * 1000.
+    tottime += elapsed
+    print "Time ", elapsed
+    print rects
+
+print "total", tottime/niters
+
+
 
 for r in rects:
     p1 = (r[0], r[1])

@@ -4,6 +4,8 @@ var drawStages = false;
 var zCull = false;
 var stencilCull = false;
 var wantColourBuffer = true;
+var gpuIntegral = false;
+var integralEncode = true;
 var THRESHOLD_EPS = 1e-5;
 
 var FaceDetector = function (cascade, width, height) {
@@ -68,8 +70,11 @@ var FaceDetector = function (cascade, width, height) {
     }
     this.finalTexture = cv.gpu.blankTexture(this.width, this.height,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
+
+    if(gpuIntegral) {
     this.originalImageTexture = cv.gpu.blankTexture(this.width, this.height,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
+    }
 
     // Create buffer for depth
     if(zCull) {
@@ -157,18 +162,20 @@ FaceDetector.prototype.detect = function (image) {
     }
 
     // Upload original image
-    gl.bindTexture(gl.TEXTURE_2D, this.originalImageTexture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    if(gpuIntegral) {
+        gl.bindTexture(gl.TEXTURE_2D, this.originalImageTexture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    }
 
     // Convert to grayscale
-    var greyStart = new Date();
+    //var greyStart = performance.now();
     var grey = cv.imgproc.imageToGreyArray(image, this.greyImage, this.width, this.height);
-    //console.log("Grayscale time", new Date() - greyStart);
+    //console.log("Grayscale time", performance.now() - greyStart);
 
     // Create and upload integral image
-    var integralStart = new Date();
+    //var integralStart = performance.now();
     cv.imgproc.integralImage(grey, this.width, this.height, this.integral);
-    //console.log("Integral time", new Date() - integralStart);
+    //console.log("Integral time", performance.now() - integralStart);
     gl.bindTexture(gl.TEXTURE_2D, this.integralTexture);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, this.integralWidth, this.integralHeight, 0, gl.LUMINANCE,
             gl.FLOAT, this.integral);
@@ -324,7 +331,7 @@ FaceDetector.prototype.detect = function (image) {
     //console.log("number of draw calls:", ndraws);
     var detectTime = new Date() - detectTimeStart;
     var totalTime = new Date() - totalTimeStart;
-    //console.log("Detection time:", detectTime, "Detection+integral:", totalTime);
+    console.log("Detection time:", detectTime, "Detection+integral:", totalTime);
     window.times.push(detectTime);
     gl.disable(gl.DEPTH_TEST);
     this.rectangles = rectangles;
@@ -416,7 +423,7 @@ FaceDetector.prototype.setupShaders = function (vertexShader, fragShader, nstage
 
         shaderArray.push(lbpShader);
     }
-    window.lbpShaderCache = shaderArray;
+    //window.lbpShaderCache = shaderArray;
 
     return shaderArray;
 }

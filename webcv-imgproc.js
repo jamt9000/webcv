@@ -8,11 +8,15 @@
         var workCanvas = document.createElement("canvas");
         var workContext = workCanvas.getContext('2d');
         var integralShader;
-        var integralVertexBuf;
-        var integralTextureCoordBuf;
+        var vpass_integralVertexBuf;
+        var vpass_integralTextureCoordBuf;
+        var hpass_integralVertexBuf;
+        var hpass_integralTextureCoordBuf;
         var integralCachedWidth;
         var integralCachedHeight;
-        var integralfb;
+        var integralfb1;
+        var integralfb2;
+
 
 
         return {
@@ -43,9 +47,9 @@
 
                 workContext.drawImage(image, 0, 0, w, h);
 
-                var start = new Date();
+                //var start = performance.now();
                 imageData = workContext.getImageData(0, 0, w, h);
-                //console.log("Grey getImageData time", new Date() - start);
+                //console.log("Grey getImageData time", performance.now() - start);
                 image_u8 = imageData.data;
                 nbytes = w * h;
 
@@ -114,83 +118,142 @@
 
                 var debug = false;
 
-                gl.activeTexture(gl.TEXTURE0);
-                gl.bindTexture(gl.TEXTURE_2D, inTexture);
-
                 if(debug) {
                 var testOutTexture = cv.gpu.blankTexture(w+1, h+1,
                  {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
                 outTexture = testOutTexture;
                 }
 
-                integralShader = integralShader || cv.shaders.getNamedShader("integralImage");
+                if(debug) {
+                var intermediateTexture = cv.gpu.blankTexture(w+1, h+1,
+                 {format: gl.RGBA, type: gl.UNSIGNED_BYTE, flip: false});
+                } else {
+                var intermediateTexture = cv.gpu.blankTexture(w+1, h+1,
+                 {format: gl.LUMINANCE, type: gl.FLOAT, flip: false});
+                }
+
+                var defs = {}
+                if(debug) {
+                    defs["DEBUG"] = 1;
+                }
+
+                integralShader = integralShader || cv.shaders.getNamedShader("integralImage", "integralImage", {defines:defs});
                 gl.useProgram(integralShader);
                 cv.shaders.setUniforms(integralShader, {uResolution: [w+1,h+1]});
-                integralfb = gl.createFramebuffer();
+                integralfb1 = gl.createFramebuffer();
+                integralfb2 = gl.createFramebuffer();
 
-                gl.bindFramebuffer(gl.FRAMEBUFFER, integralfb);
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture, 0);
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, integralfb1);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, intermediateTexture, 0);
                 gl.clearColor(0.0,0.0,0.0,1.0);
                 gl.clear(gl.COLOR_BUFFER_BIT);
 
-                // Number of diagonal pixels
-                var nquads = Math.floor(Math.sqrt(w*w + h*h));
-                var nquads = Math.min(w, h);
-                var vertexData = new Int16Array(nquads * 6 * 2);
-                var texCoordData = new Uint8Array(nquads * 6 * 2);
-                for (var i=0; i<nquads; i+=80) {
-                    var offs = i+1;
 
+                gl.bindFramebuffer(gl.FRAMEBUFFER, integralfb2);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, outTexture, 0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+
+                var vpass_vertexData = new Int16Array(h * 6 * 2);
+                var vpass_texCoordData = new Uint8Array(h * 6 * 2);
+                var hpass_vertexData = new Int16Array(w * 6 * 2);
+                var hpass_texCoordData = new Uint8Array(w * 6 * 2);
+                for (var i=0; i<h; i+=1) {
+                    var xoffs = 0;
+                    var yoffs = i+1;
                     // Vertex coordinates
                     // Bottom left
-                    vertexData[6*2*i+0] = 0.0 + offs;
-                    vertexData[6*2*i+1] = 0.0 + offs;
+                    vpass_vertexData[6*2*i+0] = 0.0 + xoffs;
+                    vpass_vertexData[6*2*i+1] = 0.0 + yoffs;
                     // Bottom right
-                    vertexData[6*2*i+2] = w + offs;
-                    vertexData[6*2*i+3] = 0.0 + offs;
+                    vpass_vertexData[6*2*i+2] = w + xoffs;
+                    vpass_vertexData[6*2*i+3] = 0.0 + yoffs;
                     // Top left
-                    vertexData[6*2*i+4] = 0.0 + offs;
-                    vertexData[6*2*i+5] = h + offs;
+                    vpass_vertexData[6*2*i+4] = 0.0 + xoffs;
+                    vpass_vertexData[6*2*i+5] = h + yoffs;
                     // Top left
-                    vertexData[6*2*i+6] = 0.0 + offs;
-                    vertexData[6*2*i+7] = h + offs;
+                    vpass_vertexData[6*2*i+6] = 0.0 + xoffs;
+                    vpass_vertexData[6*2*i+7] = h + yoffs;
                     // Bottom right
-                    vertexData[6*2*i+8] = w + offs;
-                    vertexData[6*2*i+9] = 0.0 + offs;
+                    vpass_vertexData[6*2*i+8] = w + xoffs;
+                    vpass_vertexData[6*2*i+9] = 0.0 + yoffs;
                     // Top right
-                    vertexData[6*2*i+10] = w + offs;
-                    vertexData[6*2*i+11] = h + offs;
+                    vpass_vertexData[6*2*i+10] = w + xoffs;
+                    vpass_vertexData[6*2*i+11] = h + yoffs;
 
                     // Texture coordinates
                     // Bottom left
-                    texCoordData[6*2*i+0] = 0.0;
-                    texCoordData[6*2*i+1] = 0.0;
+                    vpass_texCoordData[6*2*i+0] = 0.0;
+                    vpass_texCoordData[6*2*i+1] = 0.0;
                     // Bottom right
-                    texCoordData[6*2*i+2] = 1.0;
-                    texCoordData[6*2*i+3] = 0.0;
+                    vpass_texCoordData[6*2*i+2] = 1.0;
+                    vpass_texCoordData[6*2*i+3] = 0.0;
                     // Top left
-                    texCoordData[6*2*i+4] = 0.0;
-                    texCoordData[6*2*i+5] = 1.0;
+                    vpass_texCoordData[6*2*i+4] = 0.0;
+                    vpass_texCoordData[6*2*i+5] = 1.0;
                     // Top left
-                    texCoordData[6*2*i+6] = 0.0;
-                    texCoordData[6*2*i+7] = 1.0;
+                    vpass_texCoordData[6*2*i+6] = 0.0;
+                    vpass_texCoordData[6*2*i+7] = 1.0;
                     // Bottom right
-                    texCoordData[6*2*i+8] = 1.0;
-                    texCoordData[6*2*i+9] = 0.0;
+                    vpass_texCoordData[6*2*i+8] = 1.0;
+                    vpass_texCoordData[6*2*i+9] = 0.0;
                     // Top right
-                    texCoordData[6*2*i+10] = 1.0;
-                    texCoordData[6*2*i+11] = 1.0;
+                    vpass_texCoordData[6*2*i+10] = 1.0;
+                    vpass_texCoordData[6*2*i+11] = 1.0;
                 }
-                window.vertexData = vertexData;
+                for (var i=0; i<w; i+=1) {
+                    var xoffs = i+1;
+                    var yoffs = 0;
+                    // Vertex coordinates
+                    // Bottom left
+                    hpass_vertexData[6*2*i+0] = 0.0 + xoffs;
+                    hpass_vertexData[6*2*i+1] = 0.0 + yoffs;
+                    // Bottom right
+                    hpass_vertexData[6*2*i+2] = 1+w + xoffs;
+                    hpass_vertexData[6*2*i+3] = 0.0 + yoffs;
+                    // Top left
+                    hpass_vertexData[6*2*i+4] = 0.0 + xoffs;
+                    hpass_vertexData[6*2*i+5] = 1+h + yoffs;
+                    // Top left
+                    hpass_vertexData[6*2*i+6] = 0.0 + xoffs;
+                    hpass_vertexData[6*2*i+7] = 1+h + yoffs;
+                    // Bottom right
+                    hpass_vertexData[6*2*i+8] = 1+w + xoffs;
+                    hpass_vertexData[6*2*i+9] = 0.0 + yoffs;
+                    // Top right
+                    hpass_vertexData[6*2*i+10] = 1+w + xoffs;
+                    hpass_vertexData[6*2*i+11] = 1+h + yoffs;
 
-                integralVertexBuf = cv.shaders.arrayBuffer(vertexData);
-                integralTextureCoordBuf = cv.shaders.arrayBuffer(texCoordData);
+                    // Texture coordinates
+                    // Bottom left
+                    hpass_texCoordData[6*2*i+0] = 0.0;
+                    hpass_texCoordData[6*2*i+1] = 0.0;
+                    // Bottom right
+                    hpass_texCoordData[6*2*i+2] = 1.0;
+                    hpass_texCoordData[6*2*i+3] = 0.0;
+                    // Top left
+                    hpass_texCoordData[6*2*i+4] = 0.0;
+                    hpass_texCoordData[6*2*i+5] = 1.0;
+                    // Top left
+                    hpass_texCoordData[6*2*i+6] = 0.0;
+                    hpass_texCoordData[6*2*i+7] = 1.0;
+                    // Bottom right
+                    hpass_texCoordData[6*2*i+8] = 1.0;
+                    hpass_texCoordData[6*2*i+9] = 0.0;
+                    // Top right
+                    hpass_texCoordData[6*2*i+10] = 1.0;
+                    hpass_texCoordData[6*2*i+11] = 1.0;
+                }
+
+                vpass_integralVertexBuf = cv.shaders.arrayBuffer(vpass_vertexData);
+                vpass_integralTextureCoordBuf = cv.shaders.arrayBuffer(vpass_texCoordData);
+
+                hpass_integralVertexBuf = cv.shaders.arrayBuffer(hpass_vertexData);
+                hpass_integralTextureCoordBuf = cv.shaders.arrayBuffer(hpass_texCoordData);
+
                 integralCachedWidth = w;
                 integralCachedHeight = h;
-
-                cv.shaders.setAttributes(integralShader,
-                        {aPosition: integralVertexBuf, aTextureCoord: integralTextureCoordBuf});
-                gl.viewport(0,0,w+1,h+1);
 
                 gl.disable(gl.DEPTH_TEST);
 
@@ -199,10 +262,47 @@
                 if (debug) {
                     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
                 }
-                gl.bindFramebuffer(gl.FRAMEBUFFER, integralfb);
-                gl.drawArrays(gl.TRIANGLES, 0, 6*nquads);
-                //gl.drawArrays(gl.TRIANGLES, 0, 6*nquads);
+
+                for(var i=0; i<100; i++) {
+
+
+                //var integralstart = performance.now();
+
+
+                // Do vertical pass
+                cv.shaders.setUniforms(integralShader, {uPass: 1});
+
+                cv.shaders.setAttributes(integralShader,
+                        {aPosition: vpass_integralVertexBuf, aTextureCoord: vpass_integralTextureCoordBuf});
+                gl.viewport(0,0,w+1,h+1);
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, integralfb1);
+
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, inTexture);
+
+                gl.drawArrays(gl.TRIANGLES, 0, 6*h);
+
+                // Do horiz pass
+                cv.shaders.setUniforms(integralShader, {uPass: 2});
+
+                cv.shaders.setAttributes(integralShader,
+                        {aPosition: hpass_integralVertexBuf, aTextureCoord: hpass_integralTextureCoordBuf});
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, integralfb2);
+                gl.activeTexture(gl.TEXTURE0);
+                gl.bindTexture(gl.TEXTURE_2D, intermediateTexture);
+                gl.drawArrays(gl.TRIANGLES, 0, 6*w);
+
                 gl.disable(gl.BLEND);
+
+                //var readOut = new Uint8Array((w+1) * (h+1) * 4);
+                //gl.readPixels(0,0,w+1,h+1,gl.RGBA,gl.UNSIGNED_BYTE,readOut);
+                gl.finish();
+
+                //var integraltime = performance.now() - integralstart;
+                //console.log("Integral took", integraltime)
+            }
 
 
                 if (debug) {
