@@ -90,7 +90,7 @@ error.
 
 ![An illustration of Adaptive Boosting (AdaBoost), and the weight update step.
 The weight of misclassified elements is "boosted", so that they will be
-considered more important on the next step. [(@Thewlis12)]
+considered more important on the next step. [image (@Thewlis12)]
 \label{adaboost}](./adaboost.png)
 
 However, with the above, during detection all the chosen features will need to
@@ -181,8 +181,8 @@ Vision in the Browser
 
 The desire to integrate Computer Vision with the web has some history.
 Existing approaches largely make use of custom browser plugins able to run
-native code, such as the face detection used in Google Hangout
-@GoogleAPI. This has the disadvantage of requiring the user to trust and
+native code, such as the face detection used in Google Hangouts
+[@GoogleAPI]. This has the disadvantage of requiring the user to trust and
 install the plugin in question, or may rely on browser-specific technology
 such as Microsoft's ActiveX or Google's Native Client. Adobe Flash has proved
 another contender @flashopencv, being a commonly installed plugin able
@@ -203,7 +203,7 @@ detection on video is also possible, but typically employs techniques such as
 downsizing the video or skipping frames. Upon embarking on the present
 project, the author could locate no similar such endeavour to implement a
 Vision suite in JavaScript, but fate being as it is, a similar project by the
-name of "jsfeat" @jsfeat appeared on the scene within a couple of weeks. The
+name of "jsfeat" [@jsfeat] appeared on the scene within a couple of weeks. The
 author chooses to take this as proof of current demand for vision on the web.
 Since jsfeat does not include GPU acceleration, it will serve as a useful
 baseline. In demonstrations on the web, when set to use the full range of scales, it can
@@ -304,9 +304,9 @@ floating points. This can be done using the WebGL extension
 `OES_texture_float`, which is supported on most platforms. However, until
 recently, there was no defined way to read back floating point values to
 JavaScript, requiring inventive solutions such as packing floats into bytes
-@webgl-gpgpu. The latest draft specifications of
-`EXT_color_buffer_half_float` @colorbufhalf and
-`WEBGL_color_buffer_float` @colorbuf, amend the readPixels() function
+[@webgl-gpgpu]. The latest draft specifications of
+`EXT_color_buffer_half_float` [@colorbufhalf] and
+`WEBGL_color_buffer_float` [@colorbuf], amend the readPixels() function
 to permit float types, however it will be a matter of time before all browsers
 support it. In addition, when doing calculations, care should be given to the
 precision qualifiers offered by GLSL (highp, mediump, lowp) which alter the
@@ -316,11 +316,11 @@ fragment shader, and integers may be implemented as floats in the hardware,
 which should be taken into account when implementing algorithms.
 
 There are various examples on the web using WebGL to improve the efficiency of
-calculations in simulations, such as WebGL Water @Wallace which
+calculations in simulations, such as WebGL Water [@Wallace] which
 calculates the water and caustics simulation in the shaders,
 
 In addition, the trick of using of OpenGL Shaders to increase performance is
-employed by the GPUImage library @Larson for image processing on iOS
+employed by the GPUImage library [@Larson] for image processing on iOS
 devices.
 
 Computation in WebGL - concepts and example
