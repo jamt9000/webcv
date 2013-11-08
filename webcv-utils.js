@@ -36,7 +36,7 @@
                 } else if (navigator.webkitGetUserMedia) {
                     navigator.webkitGetUserMedia(constraints, function (s) {success(window.webkitURL.createObjectURL(s)); }, error);
                 } else if (navigator.mozGetUserMedia) {
-                    navigator.mozGetUserMedia(constraints, success, error);
+                    navigator.mozGetUserMedia(constraints, function (s) {success(window.URL.createObjectURL(s)); } , error);
                 } else {
                     // Not supported
                     return false;
