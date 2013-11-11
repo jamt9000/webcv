@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+<meta charset="utf-8">
 <script src="lbpcascade_frontalface.js"></script>
 <script src="../webcv.js"></script>
 <script src="../webcv-utils.js"></script>
@@ -36,6 +37,7 @@ window.jsfeatGroup = true;
     var canvas;
     var attrs;
     var rectBuf;
+    var canReallyPlayThrough = false;
 
     function rectangleVertices(rects) {
         var outArray = [];
@@ -74,6 +76,19 @@ window.jsfeatGroup = true;
     }
 
     function frameLoop() {
+        // May still be unable to grab image from video even after "canplaythrough" has fired,
+        // throwing an exception with Firefox
+        if(!canReallyPlayThrough) {
+            try {
+                cv.gpu.uploadToTexture(vid, vidTexture);
+            }
+            catch(e) {
+                cv.utils.requestAnimationFrame(frameLoop);
+                return;
+            }
+            canReallyPlayThrough = true;
+        }
+
         var frameLoopStart = new Date();
         // Do detection
         var rects = fd.detect(vid);
