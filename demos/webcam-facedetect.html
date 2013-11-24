@@ -13,11 +13,9 @@
 <script src="jquery.js"></script>
 <script src="dat.gui.min.js"></script>
 
-<!-- We use grouping function from objdetect or jsfeat library -->
-<script src="objectdetect.js"></script>
+<!-- We use grouping function from jsfeat library -->
 <script>var jsfeat = {};</script>
 <script src="jsfeat_haar.js"></script>
-
 
 <script src="Stats.js"></script>
 <script>
@@ -29,223 +27,143 @@ window.minNeighbours = 10;
 window.jsfeatGroup = true;
 
 
-    var vid;
-    var fd;
-    var drawShader;
-    var rectShader;
-    var vidTexture;
-    var canvas;
-    var attrs;
-    var rectBuf;
-    var canReallyPlayThrough = false;
+var vid;
+var fd;
+var drawShader;
+var rectShader;
+var vidTexture;
+var canvas;
+var attrs;
+var rectBuf;
 
-    function rectangleVertices(rects) {
-        var outArray = [];
-        // Not optimised for speed
+function rectangleVertices(rects) {
+    var outArray = [];
+    // Not optimised for speed
+    for (var i=0; i<rects.length; i+=1) {
+        // rect elements = [x,y,w,h]
+        var rect = rects[i];
+        // Correct for y inversion
+        var x=rect[0],
+        y=canvas.height - rect[1],
+        w=rect[2],
+        h=-rect[3];
+        // Top left
+        outArray.push(x);
+        outArray.push(y);
+        // Top right
+        outArray.push(x + w);
+        outArray.push(y);
+        outArray.push(x + w);
+        outArray.push(y);
+        // Bottom right
+        outArray.push(x + w);
+        outArray.push(y + h);
+        outArray.push(x + w);
+        outArray.push(y + h);
+        // Bottom left
+        outArray.push(x);
+        outArray.push(y + h);
+        outArray.push(x);
+        outArray.push(y + h);
+        // Top left
+        outArray.push(x);
+        outArray.push(y);
+    }
+    return outArray;
+}
+
+function frameLoop() {
+
+    var frameLoopStart = new Date();
+    // Do detection
+    var rects = fd.detect(vid);
+
+    if (window.groupRects) {
+        var groupStart = performance.now();
+        rects = jsfeat.haar.group_rectangles(rects, window.minNeighbours);
+        console.log("Group time", performance.now() - groupStart);
+    }
+
+    if(window.groupRects && window.showBest) {
+
+        var bestNeighbourCount = 0;
+        var bestRect;
+
         for (var i=0; i<rects.length; i+=1) {
-            // rect elements = [x,y,w,h]
-            var rect = rects[i];
-            // Correct for y inversion
-            var x=rect[0],
-                y=canvas.height - rect[1],
-                w=rect[2],
-                h=-rect[3];
-            // Top left
-            outArray.push(x);
-            outArray.push(y);
-            // Top right
-            outArray.push(x + w);
-            outArray.push(y);
-            outArray.push(x + w);
-            outArray.push(y);
-            // Bottom right
-            outArray.push(x + w);
-            outArray.push(y + h);
-            outArray.push(x + w);
-            outArray.push(y + h);
-            // Bottom left
-            outArray.push(x);
-            outArray.push(y + h);
-            outArray.push(x);
-            outArray.push(y + h);
-            // Top left
-            outArray.push(x);
-            outArray.push(y);
-        }
-        return outArray;
-    }
-
-    function frameLoop() {
-        // May still be unable to grab image from video even after "canplaythrough" has fired,
-        // throwing an exception with Firefox
-        if(!canReallyPlayThrough) {
-            try {
-                cv.gpu.uploadToTexture(vid, vidTexture);
+            if (rects[i][4] > bestNeighbourCount) {
+                bestRect = rects[i];
+                bestNeighbourCount = rects[i][4];
             }
-            catch(e) {
-                cv.utils.requestAnimationFrame(frameLoop);
-                return;
-            }
-            canReallyPlayThrough = true;
         }
 
-        var frameLoopStart = new Date();
-        // Do detection
-        console.log("vid state", vid.readyState);
-        var rects = fd.detect(vid);
-
-        if (window.groupRects) {
-            var groupStart = performance.now();
-            if(jsfeatGroup) {
-                rects = jsfeat.haar.group_rectangles(rects, window.minNeighbours);
+        if(bestRect !== undefined) {
+            rects = [bestRect];
             } else {
-                rects = objectdetect.groupRectangles(rects, window.minNeighbours);
-            }
-            console.log("Group time", performance.now() - groupStart);
+            rects = [];
         }
 
-        if(window.groupRects && window.showBest) {
-
-            var bestNeighbourCount = 0;
-            var bestRect;
-
-            for (var i=0; i<rects.length; i+=1) {
-                if (rects[i][4] > bestNeighbourCount) {
-                    bestRect = rects[i];
-                    bestNeighbourCount = rects[i][4];
-                }
-            }
-
-            if(bestRect !== undefined) {
-                rects = [bestRect];
-            } else {
-                rects = [];
-            }
-
-        }
-
-
-        /*
-        $('#webcamcontainer div').remove()
-
-        $(rects).each(function(n,e) {
-            var box = $('<div>');
-                box.css({"border": "solid 1px red",
-                    "position": "absolute",
-                    "left": e[0],
-                    "top": e[1],
-                    "width": e[2],
-                    "height": e[3]});
-                $('#webcamcontainer').append(box);
-            });
-        */
-
-
-        // Prepare to draw image
-        gl.useProgram(drawShader);
-        cv.shaders.setAttributes(drawShader, attrs);
-        cv.gpu.uploadToTexture(vid, vidTexture);
-
-        // XXX global pixelStorei set by uploadToTexture
-        // messes up detection, reset here
-        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
-
-        // Bind to texture unit 0
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, vidTexture);
-
-        // Draw to screen
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-        gl.viewport(0, 0, vid.width, vid.height);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
-        console.log("nfaces", rects.length);
-
-        // Upload face rectangles to buffer
-        var rectangleVerts = rectangleVertices(rects);
-        gl.bindBuffer(gl.ARRAY_BUFFER, rectBuf);
-        gl.bufferData(gl.ARRAY_BUFFER, new Uint16Array(rectangleVerts), gl.STATIC_DRAW);
-        gl.useProgram(rectShader);
-        cv.shaders.setAttributes(rectShader, {aPosition: rectBuf});
-        gl.drawArrays(gl.LINES, 0, rectangleVerts.length/2);
-
-        console.log("Frame loop time", new Date() - frameLoopStart);
-
-        stats.update();
-
-        if (!stop) {
-            cv.utils.requestAnimationFrame(frameLoop);
-        }
     }
 
-    function videoLoaded(stream) {
-        fd = new FaceDetector(lbpcascade_frontalface, canvas.width, canvas.height);
-        window.fd = fd;
-        vid.src = stream;
-        //vid.onplaying = frameLoop;
-        frameLoop();
+    // Prepare to draw image
+    gl.useProgram(drawShader);
+    cv.shaders.setAttributes(drawShader, attrs);
+    cv.gpu.uploadToTexture(vid, vidTexture);
+
+    // XXX global pixelStorei set by uploadToTexture
+    // messes up detection, reset here
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 0)
+
+    // Bind to texture unit 0
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, vidTexture);
+
+    // Draw to screen
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, vid.width, vid.height);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+    //console.log("nfaces", rects.length);
+
+    // Upload face rectangles to buffer
+    var rectangleVerts = rectangleVertices(rects);
+    gl.bindBuffer(gl.ARRAY_BUFFER, rectBuf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Uint16Array(rectangleVerts), gl.STATIC_DRAW);
+    gl.useProgram(rectShader);
+    cv.shaders.setAttributes(rectShader, {aPosition: rectBuf});
+    gl.drawArrays(gl.LINES, 0, rectangleVerts.length/2);
+
+    //console.log("Frame loop time", new Date() - frameLoopStart);
+
+    stats.update();
+
+    if (!stop) {
+        cv.utils.requestAnimationFrame(frameLoop);
     }
+}
 
-    var init = function () {
-        canvas = document.getElementById("glcanvas");
-        vid = document.getElementById("webcamvideo");
+function videoLoaded(stream) {
+    setupShaders();
+    vid.addEventListener("canplay", frameLoop);
+    vid.src = stream;
+    //vid.onplaying = frameLoop;
+    //frameLoop();
+}
 
-        window.cv = WebCV.create(canvas);
-        if (cv.gl === null) {
-            alert("WebGL not supported");
-        }
-        gl = cv.gl;
-        window.gl = gl;
+var init = function () {
+    canvas = document.getElementById("glcanvas");
+    vid = document.getElementById("webcamvideo");
 
-        vidTexture = cv.gpu.blankTexture(vid.width, vid.height);
+    window.cv = WebCV.create(canvas);
+    if (cv.gl === null) {
+        alert("WebGL not supported");
+    }
+    gl = cv.gl;
+    window.gl = gl;
 
-        drawShader = cv.shaders.getNamedShader("draw2d");
+    // Get webcam
+    cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
 
-        // A simple rectangle (2 triangles)
-        var vertCoords = new Float32Array([
-            0.0,   0.0,
-            canvas.width, 0.0,
-            0.0,   canvas.height,
-            0.0,   canvas.height,
-            canvas.width, 0.0,
-            canvas.width, canvas.height]);
-
-        var vertBuf = cv.shaders.arrayBuffer(vertCoords);
-
-        // Set up the texture coordinates
-        var texCoords = new Float32Array([
-            0.0, 0.0,
-            1.0, 0.0,
-            0.0, 1.0,
-            0.0, 1.0,
-            1.0, 0.0,
-            1.0, 1.0]);
-
-        var texBuf = cv.shaders.arrayBuffer(texCoords);
-        rectBuf = cv.shaders.arrayBuffer(new Uint16Array([0]));
-
-        attrs = {
-            aTextureCoord: texBuf,
-            aPosition: vertBuf,
-        };
-
-        cv.shaders.setAttributes(drawShader, attrs);
-
-        var uniforms = {
-            "uResolution": [canvas.width, canvas.height],
-            //"uImageSize": [400, 300]
-        };
-
-        cv.shaders.setUniforms(drawShader, uniforms);
-
-
-        rectShader = cv.shaders.getNamedShader("drawconst");
-        cv.shaders.setUniforms(rectShader, {uResolution: [canvas.width, canvas.height]});
-
-
-        cv.utils.getUserMedia({video: true}, videoLoaded, function () { alert("Couldn't get webcam"); });
-
-        // GUI
-        if(!window.gui) {
+    // GUI
+    if(!window.gui) {
         window.gui = new dat.GUI();
         gui.add(window, 'groupRects');
         gui.add(window, 'showBest');
@@ -258,23 +176,75 @@ window.jsfeatGroup = true;
         stats.domElement.style.zoom = 3.0;
         $('body').append( stats.domElement );
     }
-    }
+}
 
-    $(document).ready(init);
+var setupShaders = function() {
+    canvas = document.getElementById("glcanvas");
 
-    function resize(w,h) {
-        $("#webcamvideo").attr("width", w);
-        $("#webcamvideo").attr("height", h);
+    vidTexture = cv.gpu.blankTexture(vid.width, vid.height);
 
-        $("#glcanvas").remove();
-        var newcanvas = $("<canvas>");
+    drawShader = cv.shaders.getNamedShader("draw2d");
 
-        newcanvas.attr("width", w);
-        newcanvas.attr("height", h);
-        $("#glcanvascontainer").append(newcanvas);
-        init();
-    }
+    // A simple rectangle (2 triangles)
+    var vertCoords = new Float32Array([
+    0.0,   0.0,
+    canvas.width, 0.0,
+    0.0,   canvas.height,
+    0.0,   canvas.height,
+    canvas.width, 0.0,
+    canvas.width, canvas.height]);
 
+    var vertBuf = cv.shaders.arrayBuffer(vertCoords);
+
+    // Set up the texture coordinates
+    var texCoords = new Float32Array([
+    0.0, 0.0,
+    1.0, 0.0,
+    0.0, 1.0,
+    0.0, 1.0,
+    1.0, 0.0,
+    1.0, 1.0]);
+
+    var texBuf = cv.shaders.arrayBuffer(texCoords);
+    rectBuf = cv.shaders.arrayBuffer(new Uint16Array([0]));
+
+    attrs = {
+        aTextureCoord: texBuf,
+        aPosition: vertBuf,
+    };
+
+    cv.shaders.setAttributes(drawShader, attrs);
+
+    var uniforms = {
+        "uResolution": [canvas.width, canvas.height],
+        //"uImageSize": [400, 300]
+    };
+
+    cv.shaders.setUniforms(drawShader, uniforms);
+
+
+    rectShader = cv.shaders.getNamedShader("drawconst");
+    cv.shaders.setUniforms(rectShader, {uResolution: [canvas.width, canvas.height]});
+
+    fd = new FaceDetector(lbpcascade_frontalface, canvas.width, canvas.height);
+    window.fd = fd;
+}
+
+$(document).ready(init);
+
+function resize(w,h) {
+    $("#webcamvideo").attr("width", w);
+    $("#webcamvideo").attr("height", h);
+
+    //$("#glcanvas").remove();
+    var newcanvas = $('#glcanvas');//$("<canvas>");
+
+    newcanvas.attr("width", w);
+    newcanvas.attr("height", h);
+    //newcanvas.attr("id", "glcanvas");
+    //$("#glcanvascontainer").append(newcanvas);
+    setupShaders();
+}
 
 </script>
 </head>
@@ -287,6 +257,9 @@ window.jsfeatGroup = true;
 <div id="glcanvascontainer" style="">
 <canvas id="glcanvas" width="320" height="240"></canvas>
 </div>
+
+<a href="#" onclick="resize(160,120)">160x120</a>
+<a href="#" onclick="resize(320,240)">320x240</a>
 
 </body>
 </html>
