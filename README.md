@@ -1,42 +1,37 @@
-Face detection in the web browser using WebGL
+Face Detection in the Browser with WebGL
+========================================
 
-Main face detection code is in
-webcv-facedetect.js  (javascript)
-shaders/lbpStage.frag (fragment shader code)
+The getUserMedia webcam access API in modern browsers offers exciting possibilities
+for "runs anywhere" Computer Vision, but with the limitation that performance
+is typically limited by the use of JavaScript.
 
-Run ./testserver.py to launch a simple server at localhost:8000 and try the demos, eg.
-localhost:8000/demos/webcam-facedetect.html
-localhost:8000/demos/webcam-track.html
+Meanwhile, Vision algorithms are increasingly being implemented on the GPU with
+CUDA and OpenCL. This project takes advantage of the GPU within a browser
+environment by using WebGL shaders to implement a face detection algorithm
+in a fast, parallel way. 
 
-If webgl does not work, try using Chrome with the flags:
-    google-chrome --enable-webgl --ignore-gpu-blacklist
+Since WebGL is primarily a graphics API, this approach has some rough edges,
+and could be considered more of a stop-gap measure until projects like
+[WebCL](http://www.khronos.org/webcl/) reach maturity. But the viability of
+Vision on the web is definitely on the rise, and with it comes the need for
+Vision libraries, a web-based analogue to [OpenCV](http://opencv.org/).
 
+This repository has somewhat ambitiously been titled WebCV, despite only doing
+face detection so far. 
 
-Code is my own except where stated, and with the following 3rd party libraries
-and files:
+As it grows, it would be nice to have backend-agnostic approach, giving an API that would not be tied to WebGL, and could take advantage of WebCL or other technologies
+if available. (Similarly to how THREE.js can fallback to a Canvas2D renderer)
 
-    sylvester.js (Matrix library)
-    demos/Stats.js (fps counter)
-    demos/three.min.js (THREE.js 3D geometry library)
-    demos/TrackballControls.js
-    demos/THREEx.WindowResize.js
-    demos/droid_sans_regular.typeface.js
-    demos/ColladaLoader.js
-    demos/FlyControls.js (...all THREE.js utility stuff)
-    
-    demos/jquery.js (JQuery javascript library)
-    
-    demos/jsfeat/ (an implementation of face detection in javascript used for comparison)
-    demos/jsfeat_haar.js (the jsfeat haar detector, used for its rectangle clustering, with some modifications)
-    demos/objdetect.js (another js face detector, which jsfeat is based on)
-    
-    demos/dat.gui.min.js (simple gui library)
-    demos/deck (javascript presentation library)
-    demos/lytro.html (contains the code from Lytro.com embeddable iframe)
-    scripts/shader.py (For loading shaders with python)
-    
-    scripts/lbpcascade_frontalface.xml (XML cascade file from the OpenCV project)
-    demos/lbpcascade_frontalface.js (The same file converted to JavaScript)
+Demos
+=====
 
-    demos/resources (contains 3D models and textures from the web)
-    And various images scattered around are from the CMU/MIT face dataset or other online sources
+On Windows, the ANGLE DirectX conversion makes things slow. To use native
+OpenGL, launch chrome with
+
+    chrome.exe --use-gl=desktop
+
+Or in Firefox set `webgl.prefer-native-gl=true` in about:config
+
+[Basic detection demo](http://jamt9000.github.io/webcv/demos/webcam-facedetect.html)
+
+[Head tracking](http://jamt9000.github.io/webcv/demos/webcam-track.html)
