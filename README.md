@@ -25,6 +25,8 @@ if available. (Similarly to how THREE.js can fallback to a Canvas2D renderer)
 Demos
 =====
 
+Works best in Chrome (Firefox can be unstable)
+
 On Windows, the ANGLE DirectX conversion makes things slow. To use native
 OpenGL, launch chrome with
 
