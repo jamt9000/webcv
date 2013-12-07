@@ -17,7 +17,7 @@ Vision on the web is definitely on the rise, and with it comes the need for
 Vision libraries, a web-based analogue to [OpenCV](http://opencv.org/).
 
 This repository has somewhat ambitiously been titled WebCV, despite only doing
-face detection so far. 
+face detection so far. It was my MEng project at [Imperial](http://www.imperial.ac.uk), supervised by [Andrew Davison](http://www.doc.ic.ac.uk/~ajd/).
 
 As it grows, it would be nice to have backend-agnostic approach, giving an API that would not be tied to WebGL, and could take advantage of WebCL or other technologies
 if available. (Similarly to how THREE.js can fallback to a Canvas2D renderer)
