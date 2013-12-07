@@ -249,17 +249,20 @@ function resize(w,h) {
 </script>
 </head>
 <body>
-<a href="webcam-facedetect160.html">smaller</a>
-<a href="jsfeat.html">jsfeat</a>
 <div id="webcamcontainer" style="position:relative; display:none">
     <video id="webcamvideo" autoplay width="320" height="240"></video>
 </div>
 <div id="glcanvascontainer" style="">
 <canvas id="glcanvas" width="320" height="240"></canvas>
 </div>
+Change size: 
 
 <a href="#" onclick="resize(160,120)">160x120</a>
 <a href="#" onclick="resize(320,240)">320x240</a>
+
+<p>
+<a href="jsfeat.html">Click to compare with jsfeat</a> javascript-only implementation from <a href="http://inspirit.github.io/jsfeat/">http://inspirit.github.io/jsfeat/</a>:<br>
+</p>
 
 </body>
 </html>
