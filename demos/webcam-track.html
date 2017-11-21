@@ -296,7 +296,7 @@ function view(n) {
     function videoLoaded(stream) {
         fd = new FaceDetector(lbpcascade_frontalface, canvas.width, canvas.height);
         window.fd = fd;
-        vid.src = stream;
+        vid.srcObject = stream;
 
         frameLoop();
     }
