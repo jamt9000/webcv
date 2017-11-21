@@ -87,7 +87,7 @@
 
         function videoLoaded(stream) {
             vid = document.getElementById("webcamvideo");
-            vid.src = stream;
+            vid.srcObject = stream;
 
             frameLoop();
         }
